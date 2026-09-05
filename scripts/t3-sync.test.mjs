@@ -2,15 +2,15 @@ import * as NodeChildProcess from "node:child_process";
 import * as NodeFS from "node:fs";
 import * as NodeOS from "node:os";
 import * as NodePath from "node:path";
-import * as NodeTest from "node:test";
 import * as NodeAssert from "node:assert/strict";
 import * as NodeURL from "node:url";
+
+import { describe, it } from "vite-plus/test";
 
 const { spawnSync } = NodeChildProcess;
 const { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync } = NodeFS;
 const { tmpdir } = NodeOS;
 const { join } = NodePath;
-const { describe, it } = NodeTest;
 const assert = NodeAssert;
 const { fileURLToPath } = NodeURL;
 
