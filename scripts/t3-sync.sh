@@ -330,7 +330,7 @@ report_latest_release() {
     log "latest release: skipped (no curl)"
     return 0
   fi
-  if ! json="$(curl -fsSL --max-time 20 -H "Accept: application/vnd.github+json" "${RELEASE_API}" 2>/dev/null)"; then
+  if ! json="$(curl -fsSL --connect-timeout 3 --max-time 20 -H "Accept: application/vnd.github+json" "${RELEASE_API}" 2>/dev/null)"; then
     log "latest release: unavailable (network); git comparison above still stands"
     return 0
   fi

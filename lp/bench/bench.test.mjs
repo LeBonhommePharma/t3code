@@ -133,7 +133,7 @@ describe("dataset and posebust inspect", () => {
     });
     assert.equal(pose.status, 0, pose.stderr);
     const parsed = JSON.parse(pose.stdout);
-    assert.match(parsed.defaultRoot, /PoseBust$/);
+    assert.match(parsed.defaultRoot, /no-posebust$/);
     assert.match(parsed.policy.never.join(" "), /pb_clash/);
 
     const bust = spawnSync(
