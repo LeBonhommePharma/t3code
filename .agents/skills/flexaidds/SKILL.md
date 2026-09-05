@@ -1,6 +1,6 @@
 ---
 name: flexaidds
-description: FlexAIDDS Astex benchmark surface in this t3code fork. Use for arms, compare, standdown, admit, rank12, deck, DatasetRunner status, benchmark dataset registry, and bench status. Enforces SCORE_NATIVE only, no 85-launch, no new search arm, no GA pb_clash, and 2HR7 as canary-only (84 of canonical 85). Default roots are ~/Projects/FlexAIDdS, ~/flexaidds_results, and ~/Downloads/Artifacts.
+description: FlexAIDDS Astex benchmark surface in this t3code fork. Use /flexaidds or $flexaidds for arms, standdown, DatasetRunner status, and benchmark dataset registry. SCORE_NATIVE only. No 85-launch. No GA pb_clash. 2HR7 canary-only.
 ---
 
 # FlexAIDDS bench (t3code)
@@ -22,7 +22,7 @@ Point any of those env vars at another tree if the Mac paths differ.
 
 ## Commands
 
-In the composer, `$flexaidds` (or `$bench`) then name the command. Same binaries:
+In the composer, `$flexaidds` / `/flexaidds` plus `$bench` / `$admit` / `$rank12` / `$dataset-runner` / `$benchmark-dataset` / `$posebust` / `$shannon`. Same binaries:
 
 ```bash
 node lp/bench/cli.mjs arms
@@ -43,16 +43,18 @@ node lp/bench/cli.mjs session start --arm canary-2hr7 --pdb 2HR7
 Lives in FlexAIDDS, not in this fork:
 
 - Shim: `benchmarks/DatasetRunner.py` → `flexaidds.dataset_runner.runner`
-- CLI: `python3 -m benchmarks.run` (`benchmarks/run.py`)
+- CLI: `PYTHONPATH=$FLEXAIDDS_ROOT/python python3 -m flexaidds.dataset_runner` (`python/flexaidds/dataset_runner/cli.py`)
+- Native C++: `LIB/DatasetRunner.h` (inspect only)
 - Standard: `benchmarks/BENCHMARK_STANDARD.md`
 - Contract: `benchmarks/protocols/admission_metrics_contract.md`
 - Registry YAMLs: `benchmarks/datasets/*.yaml` (`astex_diverse`, `astex_nonnative`, CASF, ITC, …)
 - Canonical Astex tree: `benchmarks/astex_diverse/astex_diverse/`
+- Nested PoseBust library: `LIB/PoseBust` (official CLI is `~/Projects/PoseBust`)
 
 `dataset` / `status` only check that those paths exist and list YAML slugs. `dataset run` is refused. A printed dry-run is:
 
 ```bash
-python3 -m benchmarks.run --all --tier 1 --dry-run
+PYTHONPATH="$FLEXAIDDS_ROOT/python" python3 -m flexaidds.dataset_runner --all --tier 1 --dry-run
 ```
 
 Do not drop `--dry-run`. Do not start an 85-target docking from T3. Standdown unless LP greenlights a real campaign.

@@ -195,6 +195,8 @@ describe("t3-sync.sh", () => {
     mkdirSync(join(fork, ".agents/skills/bench"), { recursive: true });
     mkdirSync(join(fork, "scripts"), { recursive: true });
     writeFileSync(join(fork, ".agents/skills/bench/SKILL.md"), "from-repo\n");
+    mkdirSync(join(fork, ".claude/commands"), { recursive: true });
+    writeFileSync(join(fork, ".claude/commands/bench.md"), "slash-from-repo\n");
     writeFileSync(join(fork, "scripts", "t3-sync.sh"), readFileSync(SCRIPT));
     spawnSync("chmod", ["+x", join(fork, "scripts", "t3-sync.sh")]);
     git(fork, "add", ".");
@@ -215,6 +217,22 @@ describe("t3-sync.sh", () => {
     assert.equal(install.status, 0, install.stdout + install.stderr);
     assert.equal(readFileSync(join(dest, "custom-lp.md"), "utf8"), "keep-me\n");
     assert.equal(readFileSync(join(dest, "SKILL.md"), "utf8"), "from-repo\n");
+    const commandDest = join(home, ".claude/commands");
+    mkdirSync(commandDest, { recursive: true });
+    writeFileSync(join(commandDest, "keep-me.md"), "stay\n");
+    const installAgain = spawnSync("bash", [join(fork, "scripts", "t3-sync.sh"), "--install-skills"], {
+      cwd: fork,
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        T3_SYNC_HOME: home,
+        T3_SYNC_SKILL_HOME: home,
+      },
+    });
+    assert.equal(installAgain.status, 0, installAgain.stdout + installAgain.stderr);
+    assert.equal(readFileSync(join(commandDest, "bench.md"), "utf8"), "slash-from-repo\n");
+    assert.equal(readFileSync(join(commandDest, "keep-me.md"), "utf8"), "stay\n");
+    assert.equal(existsSync(join(home, ".codex/skills/bench/SKILL.md")), true);
 
     mkdirSync(join(fakeHome, ".t3/userdata"), { recursive: true });
     const blocked = spawnSync("bash", [join(fork, "scripts", "t3-sync.sh"), "--check"], {

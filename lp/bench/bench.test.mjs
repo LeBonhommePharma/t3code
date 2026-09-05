@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import assert from "node:assert/strict";
-import { mkdtempSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { spawnSync } from "node:child_process";
@@ -15,7 +15,7 @@ import {
   rank12,
   standdownViolations,
 } from "./lib.mjs";
-import { datasetRunBlocked, inspectDataset } from "./inspect.mjs";
+import { datasetRunBlocked, inspectBenchmarkDataset, inspectDataset } from "./inspect.mjs";
 import { startSession, readSessions } from "./sessions.mjs";
 import { collapseReferee } from "./referee.mjs";
 
@@ -116,7 +116,7 @@ describe("dataset and posebust inspect", () => {
     assert.equal(status.status, 0, status.stderr);
     const parsed = JSON.parse(status.stdout);
     assert.equal(parsed.present, false);
-    assert.match(parsed.policy.dryRunCmd, /benchmarks.run/);
+    assert.match(parsed.policy.dryRunCmd, /flexaidds\.dataset_runner/);
 
     const blocked = spawnSync(process.execPath, [CLI, "dataset", "run"], {
       encoding: "utf8",
@@ -126,10 +126,62 @@ describe("dataset and posebust inspect", () => {
     assert.match(blocked.stderr, /standdown-blocked/);
   });
 
+  it("lists YAML registry and protocol paths without launching docking", () => {
+    const root = mkdtempSync(join(tmpdir(), "flexaidds-"));
+    mkdirSync(join(root, "benchmarks/datasets"), { recursive: true });
+    mkdirSync(join(root, "benchmarks/protocols"), { recursive: true });
+    mkdirSync(join(root, "python/flexaidds/dataset_runner"), { recursive: true });
+    mkdirSync(join(root, "LIB"), { recursive: true });
+    writeFileSync(join(root, "benchmarks/datasets/astex_diverse.yaml"), "name: astex_diverse\n");
+    writeFileSync(join(root, "benchmarks/BENCHMARK_STANDARD.md"), "# standard\n");
+    writeFileSync(join(root, "benchmarks/protocols/admission_metrics_contract.md"), "# contract\n");
+    writeFileSync(join(root, "python/flexaidds/dataset_runner/cli.py"), "# cli\n");
+    writeFileSync(join(root, "python/flexaidds/dataset_runner/runner.py"), "# runner\n");
+    writeFileSync(join(root, "LIB/DatasetRunner.h"), "// header\n");
+    const registry = spawnSync(process.execPath, [CLI, "dataset", "registry"], {
+      encoding: "utf8",
+      env: { ...process.env, FLEXAIDDS_ROOT: root },
+    });
+    assert.equal(registry.status, 0, registry.stderr);
+    const parsed = JSON.parse(registry.stdout);
+    assert.equal(parsed.present, true);
+    assert.deepEqual(
+      parsed.registry.map((row) => row.slug),
+      ["astex_diverse"],
+    );
+    assert.equal(parsed.protocols.standard.exists, true);
+    assert.equal(parsed.protocols.contract.exists, true);
+    assert.match(parsed.astexNote, /canary-only/);
+    const dataset = inspectDataset(loadConfig({ flexaidds: root }));
+    assert.equal(dataset.pythonCli.exists, true);
+    assert.equal(dataset.pythonRunner.exists, true);
+    assert.equal(dataset.nativeHeader.exists, true);
+
+    const listed = inspectBenchmarkDataset(loadConfig({ flexaidds: root }));
+    assert.equal(listed.registry.length, 1);
+    assert.equal(inspectDataset(loadConfig({ flexaidds: root })).yamlSlugs[0], "astex_diverse.yaml");
+    assert.equal(parsed.protocols.astexNative85.exists, false);
+
+    const printed = spawnSync(process.execPath, [CLI, "dataset", "run", "--dry-run"], {
+      encoding: "utf8",
+      env: { ...process.env, FLEXAIDDS_ROOT: root },
+    });
+    assert.equal(printed.status, 0, printed.stderr);
+    const dry = JSON.parse(printed.stdout);
+    assert.equal(dry.execute, false);
+    assert.match(dry.dryRunAll, /--dry-run/);
+  });
+
   it("lists PoseBust defaults and refuses --bust without an allow flag", () => {
     const pose = spawnSync(process.execPath, [CLI, "posebust"], {
       encoding: "utf8",
-      env: { ...process.env, POSEBUST_ROOT: join(tmpdir(), "no-posebust") },
+      env: {
+        ...process.env,
+        PATH: "/usr/bin:/bin",
+        POSEBUST_BIN: "",
+        POSEBUST_ROOT: join(tmpdir(), "no-posebust"),
+        FLEXAIDDS_ROOT: join(tmpdir(), "no-flexaidds"),
+      },
     });
     assert.equal(pose.status, 0, pose.stderr);
     const parsed = JSON.parse(pose.stdout);
@@ -143,6 +195,50 @@ describe("dataset and posebust inspect", () => {
     );
     assert.equal(bust.status, 1);
     assert.match(bust.stderr, /posebust CLI not found|refusing --bust/);
+  });
+
+  it("prints a PoseBust build hint without compiling", () => {
+    const build = spawnSync(process.execPath, [CLI, "posebust", "build"], {
+      encoding: "utf8",
+      env: { ...process.env, POSEBUST_ROOT: join(tmpdir(), "no-posebust") },
+    });
+    assert.equal(build.status, 0, build.stderr);
+    const parsed = JSON.parse(build.stdout);
+    assert.equal(parsed.execute, false);
+    assert.match(parsed.buildHint, /cmake/);
+  });
+
+  it("finds nested FlexAIDDS LIB/PoseBust without treating it as the official CLI", () => {
+    const root = mkdtempSync(join(tmpdir(), "flexaidds-"));
+    mkdirSync(join(root, "LIB/PoseBust"), { recursive: true });
+    writeFileSync(join(root, "LIB/PoseBust/Engine.h"), "// nested library\n");
+    const pose = spawnSync(process.execPath, [CLI, "posebust"], {
+      encoding: "utf8",
+      env: {
+        ...process.env,
+        PATH: "/usr/bin:/bin",
+        POSEBUST_BIN: "",
+        FLEXAIDDS_ROOT: root,
+        POSEBUST_ROOT: join(tmpdir(), "no-posebust-cli"),
+      },
+    });
+    assert.equal(pose.status, 0, pose.stderr);
+    const parsed = JSON.parse(pose.stdout);
+    assert.equal(parsed.binary, null);
+    assert.ok(parsed.nestedPresent.some((path) => path.endsWith("LIB/PoseBust")));
+    assert.match(parsed.policy.buildHint, /library/);
+  });
+
+  it("prints Shannon inspect without enabling the live gate", () => {
+    delete process.env.SHANNON_GATE_LIVE;
+    const shannon = spawnSync(process.execPath, [CLI, "shannon"], {
+      encoding: "utf8",
+      env: { ...process.env, SHANNON_ROOT: join(tmpdir(), "no-shannon"), SHANNON_GATE_LIVE: "" },
+    });
+    assert.equal(shannon.status, 0, shannon.stderr);
+    const parsed = JSON.parse(shannon.stdout);
+    assert.equal(parsed.present, false);
+    assert.equal(parsed.gateLive, false);
   });
 });
 

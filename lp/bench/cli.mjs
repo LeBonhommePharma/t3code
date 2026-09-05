@@ -18,6 +18,7 @@ import { readSessions, startSession } from "./sessions.mjs";
 import {
   datasetRunBlocked,
   defaultMacPaths,
+  inspectBenchmarkDataset,
   inspectDataset,
   inspectPosebust,
   inspectShannon,
@@ -35,10 +36,16 @@ Commands:
   deck [csv]           markdown deck (CONFLICT banner if hung/pool/claim_ready clash)
   status               paths, gate, sessions, dataset runner, PoseBust
   dataset [status]     read-only DatasetRunner / Astex registry inspect
+  dataset registry     YAML slugs + BENCHMARK_STANDARD / admission contract paths
   dataset dry-run-cmd  print the --dry-run command; does not execute
+  shannon              Shannon root / gate status (fail-open unless SHANNON_GATE_LIVE=1)
   posebust [status]    find the PoseBust CLI / tree (score-only)
+  posebust build       print cmake hint; does not compile
   posebust validate --pred <lig> --protein <rec> [-l crystal]
   session start --arm <id> [--pdb PDB]
+
+Slash/skills (T3 composer): /bench /admit /rank12 /dataset-runner /benchmark-dataset /posebust /shannon /flexaidds
+Claude also loads .claude/commands for those names. $mentions work on any line.
 
 Default Mac paths (override with env):
   FLEXAIDDS_ROOT=$HOME/Projects/FlexAIDdS
@@ -152,6 +159,7 @@ async function main(argv) {
             gate,
             sessions: readSessions(config.stateDir),
             dataset: inspectDataset(config),
+            benchmarkDataset: inspectBenchmarkDataset(config),
             posebust: inspectPosebust(config),
             shannon: inspectShannon(config),
           },
@@ -161,6 +169,7 @@ async function main(argv) {
       );
       return 0;
     }
+    case "runner":
     case "dataset": {
       const sub = argv[1] ?? "status";
       if (sub === "dry-run-cmd" || sub === "help") {
@@ -170,15 +179,61 @@ async function main(argv) {
         );
         return 0;
       }
+      if (sub === "registry" || sub === "assets") {
+        process.stdout.write(`${JSON.stringify(inspectBenchmarkDataset(config), null, 2)}\n`);
+        return 0;
+      }
       if (sub === "run" || sub === "launch") {
+        const inspect = inspectDataset(config);
+        if (datasetRunBlocked(argv.slice(1)) === null) {
+          process.stdout.write(
+            `${JSON.stringify(
+              {
+                execute: false,
+                reason: "print-only. Do not drop --dry-run. T3 never launches docking.",
+                dryRunCmd: inspect.policy.dryRunCmd,
+                dryRunAll: inspect.policy.dryRunAll,
+              },
+              null,
+              2,
+            )}\n`,
+          );
+          return 0;
+        }
         process.stderr.write(`${datasetRunBlocked(argv.slice(1))}\n`);
         return 1;
       }
       process.stdout.write(`${JSON.stringify(inspectDataset(config), null, 2)}\n`);
       return 0;
     }
+    case "shannon": {
+      process.stdout.write(`${JSON.stringify(inspectShannon(config), null, 2)}\n`);
+      return 0;
+    }
+    case "registry":
+    case "assets": {
+      process.stdout.write(`${JSON.stringify(inspectBenchmarkDataset(config), null, 2)}\n`);
+      return 0;
+    }
     case "posebust": {
       const sub = argv[1] ?? "status";
+      if (sub === "build") {
+        const inspect = inspectPosebust(config);
+        process.stdout.write(
+          `${JSON.stringify(
+            {
+              execute: false,
+              reason: "print-only. Run cmake yourself after LP greenlights a build.",
+              buildHint: inspect.policy.buildHint,
+              binary: inspect.binary,
+              presentRoots: inspect.presentRoots,
+            },
+            null,
+            2,
+          )}\n`,
+        );
+        return 0;
+      }
       if (sub === "validate") {
         const predFlag = argv.indexOf("--pred");
         const proteinFlag = argv.indexOf("--protein");

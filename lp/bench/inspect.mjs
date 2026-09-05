@@ -8,13 +8,30 @@ import { expandPath, loadConfig, STANDDOWN } from "./lib.mjs";
 export const DATASET_ENTRYPOINTS = {
   runnerShim: "benchmarks/DatasetRunner.py",
   cliShim: "benchmarks/run.py",
-  pythonModule: "benchmarks.run",
+  pythonModule: "flexaidds.dataset_runner",
+  pythonCli: "python/flexaidds/dataset_runner/cli.py",
+  pythonRunner: "python/flexaidds/dataset_runner/runner.py",
+  pythonMain: "python/flexaidds/dataset_runner/__main__.py",
+  nativeHeader: "LIB/DatasetRunner.h",
+  nativeImpl: "LIB/DatasetRunner.cpp",
+  nextgen: "benchmarks/nextgen/runner.py",
   standard: "benchmarks/BENCHMARK_STANDARD.md",
   contract: "benchmarks/protocols/admission_metrics_contract.md",
   datasetsDir: "benchmarks/datasets",
   astexCanonical: "benchmarks/astex_diverse/astex_diverse",
   astexManifest: "benchmarks/protocols/astex85_target_manifest.json",
+  astexYamlManifest: "benchmarks/datasets/astex_diverse_manifest.json",
+  astexNative85: "benchmarks/datasets/benchmark_astex_native_85.json",
+  exclusions: "benchmarks/protocols/science_exclusions.md",
+  canonical: "benchmarks/datasets/CANONICAL.md",
 };
+
+export const POSEBUST_NESTED = [
+  "LIB/PoseBust",
+  "PoseBust",
+  "external/PoseBust",
+  "third_party/PoseBust",
+];
 
 function existsEntry(root, relative) {
   const path = join(root, relative);
@@ -39,59 +56,95 @@ function which(bin) {
 export function inspectDataset(config = loadConfig()) {
   const root = config.flexaidds;
   const datasetsDir = join(root, DATASET_ENTRYPOINTS.datasetsDir);
+  const pythonPath = join(root, "python");
+  const module = DATASET_ENTRYPOINTS.pythonModule;
   return {
     present: existsSync(root),
     root,
-    pythonModule: `python3 -m ${DATASET_ENTRYPOINTS.pythonModule}`,
+    pythonModule: `PYTHONPATH=${pythonPath} python3 -m ${module}`,
     runner: existsEntry(root, DATASET_ENTRYPOINTS.runnerShim),
     cli: existsEntry(root, DATASET_ENTRYPOINTS.cliShim),
+    pythonCli: existsEntry(root, DATASET_ENTRYPOINTS.pythonCli),
+    pythonRunner: existsEntry(root, DATASET_ENTRYPOINTS.pythonRunner),
+    pythonMain: existsEntry(root, DATASET_ENTRYPOINTS.pythonMain),
+    nativeHeader: existsEntry(root, DATASET_ENTRYPOINTS.nativeHeader),
+    nativeImpl: existsEntry(root, DATASET_ENTRYPOINTS.nativeImpl),
+    nextgen: existsEntry(root, DATASET_ENTRYPOINTS.nextgen),
     standard: existsEntry(root, DATASET_ENTRYPOINTS.standard),
     contract: existsEntry(root, DATASET_ENTRYPOINTS.contract),
     astexCanonical: existsEntry(root, DATASET_ENTRYPOINTS.astexCanonical),
     astexManifest: existsEntry(root, DATASET_ENTRYPOINTS.astexManifest),
+    exclusions: existsEntry(root, DATASET_ENTRYPOINTS.exclusions),
+    canonical: existsEntry(root, DATASET_ENTRYPOINTS.canonical),
     datasetsDir: existsEntry(root, DATASET_ENTRYPOINTS.datasetsDir),
     yamlSlugs: listYamlSlugs(datasetsDir),
     standdown: STANDDOWN,
     policy: {
       default: "read-only status. Do not launch docking.",
       never: ["85-target launch", "new search arm", "GA pb_clash insert", "Science sqlite writes"],
-      dryRunCmd: `python3 -m ${DATASET_ENTRYPOINTS.pythonModule} --help`,
-      dryRunAll: `python3 -m ${DATASET_ENTRYPOINTS.pythonModule} --all --tier 1 --dry-run`,
+      dryRunCmd: `PYTHONPATH=${pythonPath} python3 -m ${module} --help`,
+      dryRunAll: `PYTHONPATH=${pythonPath} python3 -m ${module} --all --tier 1 --dry-run`,
     },
   };
 }
 
 export function inspectPosebust(config = loadConfig()) {
-  const roots = [
-    config.posebust,
-    join(config.flexaidds, "PoseBust"),
-    join(config.flexaidds, "third_party/PoseBust"),
-    join(config.flexaidds, "external/PoseBust"),
-  ].filter(Boolean);
-  const uniqueRoots = [...new Set(roots.map((path) => expandPath(path)))];
+  const standalone = expandPath(config.posebust);
+  const nested = POSEBUST_NESTED.map((relative) => join(config.flexaidds, relative));
+  const uniqueRoots = [...new Set([standalone, ...nested].filter(Boolean))];
   const presentRoots = uniqueRoots.filter((path) => existsSync(path));
+  const nestedPresent = nested.filter((path) => existsSync(path));
   const binaryCandidates = [
     process.env.POSEBUST_BIN,
     which("posebust"),
-    ...presentRoots.flatMap((root) => [
-      join(root, "build/posebust"),
-      join(root, "build/apps/posebust"),
-    ]),
+    join(standalone, "build/posebust"),
+    join(standalone, "build/apps/posebust"),
   ].filter(Boolean);
   const binary = binaryCandidates.find((path) => existsSync(path)) ?? null;
+  const standalonePresent = existsSync(standalone);
+  const buildHint = standalonePresent
+    ? `cmake -S ${standalone} -B ${join(standalone, "build")} && cmake --build ${join(standalone, "build")}`
+    : nestedPresent[0]
+      ? `Official CLI lives in ~/Projects/PoseBust. Nested FlexAIDDS tree is a library (${nestedPresent[0]}). After LP greenlights: cmake -B <flexaidds>/build -DBUILD_TESTING=ON && cmake --build <flexaidds>/build --target test_posebust`
+      : `cmake -S ${standalone} -B ${join(standalone, "build")}`;
   return {
-    defaultRoot: config.posebust,
+    defaultRoot: standalone,
+    nestedLib: "LIB/PoseBust",
     presentRoots,
+    nestedPresent,
     binary,
     cmake: presentRoots.map((root) => existsEntry(root, "CMakeLists.txt")),
     cliHelp: "posebust --native --pred <lig.sdf> --protein <rec.pdb> [-l crystal.sdf]",
     policy: {
-      default: "score-only NativePoseQC. Prefer official posebust CLI when on PATH.",
+      default: "score-only NativePoseQC. Prefer official posebust CLI when on PATH or POSEBUST_BIN.",
       never: ["GA pb_clash insert", "upstream --bust unless POSEBUST_ALLOW_BUST=1"],
-      buildHint: presentRoots[0]
-        ? `cmake -S ${presentRoots[0]} -B ${join(presentRoots[0], "build")} && cmake --build ${join(presentRoots[0], "build")}`
-        : `cmake -S ${config.posebust} -B ${join(config.posebust, "build")}`,
+      buildHint,
     },
+  };
+}
+
+export function inspectBenchmarkDataset(config = loadConfig()) {
+  const dataset = inspectDataset(config);
+  const root = dataset.root;
+  return {
+    present: dataset.present,
+    root,
+    astexCanonical: dataset.astexCanonical,
+    astexNote: "2HR7 is canary-only (84 of canonical 85). Do not launch the 85-set from T3.",
+    protocols: {
+      standard: dataset.standard,
+      contract: dataset.contract,
+      astexManifest: dataset.astexManifest,
+      astexYamlManifest: existsEntry(root, DATASET_ENTRYPOINTS.astexYamlManifest),
+      astexNative85: existsEntry(root, DATASET_ENTRYPOINTS.astexNative85),
+      exclusions: dataset.exclusions,
+      canonical: dataset.canonical,
+    },
+    registry: dataset.yamlSlugs.map((file) => ({
+      slug: file.replace(/\.ya?ml$/i, ""),
+      file: join(dataset.datasetsDir.path, file),
+    })),
+    standdown: STANDDOWN,
   };
 }
 

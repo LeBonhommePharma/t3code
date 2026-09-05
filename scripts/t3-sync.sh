@@ -19,9 +19,9 @@ Usage: scripts/t3-sync.sh --check | --apply | --rollback [snapshot-id] | --list 
                      non-zero. Refuses a dirty worktree.
   --rollback [id]    Restore the latest (or named) pre-sync snapshot.
   --list             Show kept snapshots (newest first).
-  --install-skills   Copy FlexAIDDS / Shannon / bench / PoseBust skills into
-                     user skill dirs. Merge-only: extra LP files are kept.
-                     Does not merge git. Safe to re-run.
+  --install-skills   Copy FlexAIDDS / Shannon / bench / PoseBust / DatasetRunner
+                     skills into user skill dirs, and Claude /commands beside them.
+                     Merge-only: extra LP files are kept. Does not merge git.
 
 Environment:
   T3_SYNC_HOME             default: $HOME/.t3code  (NOT ~/.t3)
@@ -56,7 +56,7 @@ LOG_DIR="${T3_SYNC_HOME}/logs"
 SNAP_DIR="${T3_SYNC_HOME}/sync-snapshots"
 LOCK_FILE="${T3_SYNC_HOME}/t3-sync.lock"
 MANIFEST="${ROOT}/lp/overlays.manifest"
-SKILL_NAMES=(flexaidds shannon bench posebust)
+SKILL_NAMES=(flexaidds shannon bench posebust dataset-runner benchmark-dataset admit rank12)
 LOG_FILE="/dev/null"
 LOCK_DIR=""
 
@@ -148,7 +148,8 @@ skill_dest_roots() {
   printf '%s\n' \
     "${T3_SYNC_SKILL_HOME}/.agents/skills" \
     "${T3_SYNC_SKILL_HOME}/.claude/skills" \
-    "${T3_SYNC_SKILL_HOME}/.cursor/skills"
+    "${T3_SYNC_SKILL_HOME}/.cursor/skills" \
+    "${T3_SYNC_SKILL_HOME}/.codex/skills"
 }
 
 ensure_upstream_remote() {
@@ -308,6 +309,17 @@ restore_snapshot() {
   log "T3 userdata (~/.t3) was not touched."
 }
 
+install_commands() {
+  local src dest
+  src="${ROOT}/.claude/commands"
+  [[ -d "${src}" ]] || return 0
+  dest="${T3_SYNC_SKILL_HOME}/.claude/commands"
+  userdata_guard "${dest}"
+  mkdir -p "${dest}"
+  cp -a "${src}/." "${dest}/"
+  log "installed Claude commands -> ${dest} (merge, extras kept)"
+}
+
 install_skills() {
   local name src dest root
   for name in "${SKILL_NAMES[@]}"; do
@@ -322,6 +334,7 @@ install_skills() {
       log "installed skill ${name} -> ${dest} (merge, extras kept)"
     done < <(skill_dest_roots)
   done
+  install_commands
 }
 
 report_latest_release() {

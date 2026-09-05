@@ -1,21 +1,24 @@
 ---
 name: shannon
-description: Shannon hub/gate skill for T3 Code. Points at ~/Projects/Shannon. Use for collapse referee, campaign gating, and blocking launchish/write-results when SHANNON_GATE_LIVE=1. Default is a fail-open stub so T3 agents can still read bench status offline.
+description: Shannon hub/gate skill for T3 Code. Use /shannon or $shannon. Points at ~/Projects/Shannon. Collapse referee fail-opens unless SHANNON_GATE_LIVE=1.
 ---
 
 # Shannon (t3code adapter)
 
 Do not copy Shannon's full hub skill into T3. This pack tells T3 agents where Shannon lives and how the bench referee behaves.
 
+Composer: `$shannon` / `/shannon`. Claude extra: `.claude/commands/shannon.md`.
+
 ## Root
 
 `~/Projects/Shannon` (`SHANNON_ROOT`). Read that repo's own `skills/shannon/SKILL.md` when you are actually operating the hub.
 
-## Referee
-
 ```bash
+node lp/bench/cli.mjs shannon
 node lp/bench/cli.mjs status
 ```
+
+## Referee
 
 The collapse referee in `lp/bench/referee.mjs`:
 
