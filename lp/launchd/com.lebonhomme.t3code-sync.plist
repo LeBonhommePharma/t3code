@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  Written but NOT loaded. Review, then load yourself if you want weekday checks:
+
+    launchctl bootstrap gui/$(id -u) lp/launchd/com.lebonhomme.t3code-sync.plist
+
+  Unload:
+
+    launchctl bootout gui/$(id -u) lp/launchd/com.lebonhomme.t3code-sync.plist
+
+  Edit WorkingDirectory to this clone before loading. The job only runs --check
+  (never --apply) so it cannot merge or brick the checkout unattended.
+-->
+<plist version="1.0">
+  <dict>
+    <key>Label</key>
+    <string>com.lebonhomme.t3code-sync</string>
+    <key>WorkingDirectory</key>
+    <string>/Users/lp.more/Projects/t3code</string>
+    <key>ProgramArguments</key>
+    <array>
+      <string>/bin/bash</string>
+      <string>-lc</string>
+      <string>scripts/t3-sync.sh --check</string>
+    </array>
+    <key>StartCalendarInterval</key>
+    <array>
+      <dict>
+        <key>Weekday</key>
+        <integer>1</integer>
+        <key>Hour</key>
+        <integer>10</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+      </dict>
+      <dict>
+        <key>Weekday</key>
+        <integer>2</integer>
+        <key>Hour</key>
+        <integer>10</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+      </dict>
+      <dict>
+        <key>Weekday</key>
+        <integer>3</integer>
+        <key>Hour</key>
+        <integer>10</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+      </dict>
+      <dict>
+        <key>Weekday</key>
+        <integer>4</integer>
+        <key>Hour</key>
+        <integer>10</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+      </dict>
+      <dict>
+        <key>Weekday</key>
+        <integer>5</integer>
+        <key>Hour</key>
+        <integer>10</integer>
+        <key>Minute</key>
+        <integer>0</integer>
+      </dict>
+    </array>
+    <key>StandardOutPath</key>
+    <string>/Users/lp.more/.t3code/logs/launchd-t3-sync.log</string>
+    <key>StandardErrorPath</key>
+    <string>/Users/lp.more/.t3code/logs/launchd-t3-sync.log</string>
+    <key>RunAtLoad</key>
+    <false/>
+  </dict>
+</plist>

@@ -76,3 +76,10 @@ keyboard repeat; if repeat is disabled, use two presses or the application menu.
 Change **Settings → General → Confirmations → Quit shortcut** to **Direct** for a
 single press or **Double press** for two presses only. Choosing **Quit** from the
 application menu always quits immediately.
+
+## Dictation (Control-Space)
+
+T3 Code does not bind Control-Space. Web and desktop have no T3 speech-to-text
+command. Use the operating system's dictation shortcut (Control-Space on many
+macOS setups). On iPhone, hold the composer microphone; see
+[voice input](./composer.md#voice-input-on-iphone).

@@ -261,47 +261,69 @@ export function ConnectionsNewRouteScreen({
               </View>
             )
           ) : (
-            <View collapsable={false} className="gap-4 rounded-[24px] bg-card p-4">
-              <View collapsable={false} className="gap-1.5">
-                <Text className="text-2xs font-t3-bold tracking-[0.8px] uppercase text-foreground-muted">
-                  Host
+            <View collapsable={false} className="gap-4">
+              <View collapsable={false} className="gap-3 rounded-[24px] bg-card p-4">
+                <Text className="text-sm leading-normal text-foreground">
+                  Same Wi-Fi as the computer. Scan the QR from Settings → Pair phone on Wi-Fi.
                 </Text>
-                <TextInput
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  keyboardType="url"
-                  placeholder="192.168.1.100:8080"
-                  value={hostInput}
-                  onChangeText={handleHostChange}
-                  className="rounded-[14px] border border-input-border bg-input px-4 py-3.5 text-base text-foreground"
+                <ConnectionSheetButton
+                  icon="camera"
+                  label="Scan QR code"
+                  tone="primary"
+                  onPress={() => {
+                    void openScanner();
+                  }}
+                />
+                <Text className="text-xs leading-normal text-foreground-muted">
+                  If scan fails: guest Wi-Fi, AP isolation, or a localhost QR. The computer must
+                  advertise a LAN address, not 127.0.0.1.
+                </Text>
+              </View>
+              <View collapsable={false} className="gap-4 rounded-[24px] bg-card p-4">
+                <Text className="text-2xs font-t3-bold tracking-[0.8px] uppercase text-foreground-muted">
+                  Or enter host and code
+                </Text>
+                <View collapsable={false} className="gap-1.5">
+                  <Text className="text-2xs font-t3-bold tracking-[0.8px] uppercase text-foreground-muted">
+                    Host
+                  </Text>
+                  <TextInput
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    keyboardType="url"
+                    placeholder="192.168.1.100:8080"
+                    value={hostInput}
+                    onChangeText={handleHostChange}
+                    className="rounded-[14px] border border-input-border bg-input px-4 py-3.5 text-base text-foreground"
+                  />
+                </View>
+
+                <View collapsable={false} className="gap-1.5">
+                  <Text className="text-2xs font-t3-bold tracking-[0.8px] uppercase text-foreground-muted">
+                    Pairing code
+                  </Text>
+                  <TextInput
+                    autoCapitalize="none"
+                    autoCorrect={false}
+                    placeholder="abc-123-xyz"
+                    value={codeInput}
+                    onChangeText={handleCodeChange}
+                    className="rounded-[14px] border border-input-border bg-input px-4 py-3.5 text-base text-foreground"
+                  />
+                </View>
+
+                {pairingConnectionError ? <ErrorBanner message={pairingConnectionError} /> : null}
+
+                <ConnectionSheetButton
+                  icon="plus"
+                  label={isSubmitting ? "Pairing..." : "Add environment"}
+                  disabled={connectDisabled}
+                  tone="secondary"
+                  onPress={() => {
+                    void handleSubmit();
+                  }}
                 />
               </View>
-
-              <View collapsable={false} className="gap-1.5">
-                <Text className="text-2xs font-t3-bold tracking-[0.8px] uppercase text-foreground-muted">
-                  Pairing code
-                </Text>
-                <TextInput
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  placeholder="abc-123-xyz"
-                  value={codeInput}
-                  onChangeText={handleCodeChange}
-                  className="rounded-[14px] border border-input-border bg-input px-4 py-3.5 text-base text-foreground"
-                />
-              </View>
-
-              {pairingConnectionError ? <ErrorBanner message={pairingConnectionError} /> : null}
-
-              <ConnectionSheetButton
-                icon="plus"
-                label={isSubmitting ? "Pairing..." : "Add environment"}
-                disabled={connectDisabled}
-                tone="primary"
-                onPress={() => {
-                  void handleSubmit();
-                }}
-              />
             </View>
           )}
         </View>

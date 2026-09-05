@@ -82,9 +82,10 @@ and use **Attach again** or remove the missing file before sending.
 
 ## Voice input on iPhone
 
-On supported iPhones with iOS 26 or later, use the composer's microphone to record,
-then confirm to transcribe. Text is inserted where your selection was when
-recording started, ready for you to review and edit before sending.
+On supported iPhones with iOS 26 or later, **hold** the composer's microphone to
+record, then **release** to transcribe. Text is inserted where your selection was
+when recording started, ready for you to review and edit before sending. Cancel
+discards the recording and keeps the existing draft.
 
 The first use may download Apple's speech model and needs a network connection.
 Later transcription works offline for that language. Recordings can be up to five
@@ -93,6 +94,10 @@ recording and preserves your existing draft.
 
 Transcription runs on your device. T3 Code deletes the temporary audio after
 transcription or cancellation; only the message text is sent when you submit.
+
+Web and desktop have no T3 speech-to-text. Use the operating system's dictation
+shortcut instead (often Control-Space on macOS). That shortcut is not a T3
+command; see [keybindings](./keybindings.md).
 
 ## Commands and skills
 

@@ -135,6 +135,41 @@ export class ServePortOccupiedError extends Schema.TaggedErrorClass<ServePortOcc
 export const resolveDirectPairingBaseUrl = (state: PersistedServerRuntimeState): string =>
   state.devUrl ?? resolveHeadlessConnectionString(state.host, state.port);
 
+export class LoopbackLanPairingError extends Schema.TaggedErrorClass<LoopbackLanPairingError>()(
+  "LoopbackLanPairingError",
+  { origin: Schema.String },
+) {
+  override get message(): string {
+    return [
+      "This server is only on localhost, so a phone on Wi-Fi cannot reach it.",
+      `Server origin: ${this.origin}`,
+      "On the desktop app: Settings → Pair phone on Wi-Fi → Turn on Wi-Fi pairing, then scan the QR.",
+      "Or restart the server with --host 0.0.0.0 and run t3 pair again.",
+      "Different network: t3 pair --tailscale, or npx t3 connect.",
+    ].join("\n");
+  }
+}
+
+export const directPairingNotes = (input: {
+  readonly loopback: boolean;
+  readonly lanRequired: boolean;
+}): ReadonlyArray<string> => {
+  if (input.loopback) {
+    return [
+      "This QR is only reachable on this computer. A phone cannot use it.",
+      "Same Wi-Fi: Settings → Pair phone on Wi-Fi, or restart with --host 0.0.0.0, then t3 pair again.",
+      "Different network (optional): t3 pair --tailscale, or T3 Connect.",
+    ];
+  }
+  return [
+    "Same Wi-Fi: scan this QR in the T3 Code phone app (Add environment).",
+    input.lanRequired
+      ? "This URL is a LAN address. Tailscale and T3 Connect are optional fallbacks."
+      : "If the phone is on another network, use t3 pair --tailscale or T3 Connect.",
+  ];
+};
+
+
 export class DevServerNotProxiableError extends Schema.TaggedErrorClass<DevServerNotProxiableError>()(
   "DevServerNotProxiableError",
   { devUrl: Schema.String },
@@ -465,6 +500,13 @@ const tailscaleFlag = Flag.boolean("tailscale").pipe(
   Flag.withDefault(false),
 );
 
+const lanFlag = Flag.boolean("lan").pipe(
+  Flag.withDescription(
+    "Require a same-Wi-Fi (LAN) pairing URL. Fails instead of printing a localhost QR.",
+  ),
+  Flag.withDefault(false),
+);
+
 const tailscaleServePortFlag = Flag.integer("tailscale-serve-port").pipe(
   Flag.withSchema(PortSchema),
   Flag.withDescription("HTTPS port for Tailscale Serve when --tailscale is enabled."),
@@ -476,6 +518,7 @@ export const pairCommand = Command.make("pair", {
   ttl: ttlFlag,
   label: labelFlag,
   tailscale: tailscaleFlag,
+  lan: lanFlag,
   tailscaleServePort: tailscaleServePortFlag,
 }).pipe(
   Command.withDescription(
@@ -501,11 +544,11 @@ export const pairCommand = Command.make("pair", {
         notes.push(...resolved.notes);
       } else {
         pairingBaseUrl = resolveDirectPairingBaseUrl(target.state);
-        if (isLoopbackHost(new URL(pairingBaseUrl).hostname)) {
-          notes.push(
-            "This URL is only reachable from this machine. Re-run with --tailscale, or restart the server with a reachable --host.",
-          );
+        const loopback = isLoopbackHost(new URL(pairingBaseUrl).hostname);
+        if (flags.lan && loopback) {
+          return yield* new LoopbackLanPairingError({ origin: target.state.origin });
         }
+        notes.push(...directPairingNotes({ loopback, lanRequired: flags.lan }));
         if (target.variant === "dev" && target.state.devUrl === undefined) {
           notes.push(
             "This dev server did not record its web URL; restart it so pairing can go through the web origin.",

@@ -4,6 +4,7 @@ import {
   applyWslEnableSelection,
   isQrShareableEndpoint,
   isWslSettingsRowVisible,
+  selectLanPairingEndpoint,
   selectQrEndpointOption,
 } from "./ConnectionsSettings.logic";
 
@@ -132,6 +133,24 @@ describe("isQrShareableEndpoint", () => {
     expect(
       isQrShareableEndpoint(makeEndpoint({ reachability: "private-network", status: "unknown" })),
     ).toBe(true);
+  });
+});
+
+describe("selectLanPairingEndpoint", () => {
+  it("prefers a LAN endpoint over Tailscale or loopback", () => {
+    const lan = makeEndpoint({});
+    const loopback = makeEndpoint({
+      id: "desktop-loopback:4780",
+      reachability: "loopback",
+      httpBaseUrl: "http://127.0.0.1:4780",
+    });
+    const tailscale = makeEndpoint({
+      id: "tailscale-ip:http://100.84.12.8:4780",
+      reachability: "private-network",
+      httpBaseUrl: "http://100.84.12.8:4780",
+    });
+    expect(selectLanPairingEndpoint([loopback, tailscale, lan])?.id).toBe(lan.id);
+    expect(selectLanPairingEndpoint([loopback])).toBeNull();
   });
 });
 

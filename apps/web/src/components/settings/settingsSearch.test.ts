@@ -154,6 +154,7 @@ describe("searchSettings", () => {
       "follow-change-request-templates",
       "git-fetch-interval",
       "network-access",
+      "pair-phone",
       "publish-agent-activity",
       "provider-health-check-interval",
       "source-control-writer-model",

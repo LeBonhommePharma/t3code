@@ -715,6 +715,7 @@ export const ThreadComposer = memo(function ThreadComposer(props: ThreadComposer
                   state={voiceInput.state}
                   isAvailable={voiceInput.isAvailable}
                   onStart={voiceInput.start}
+                  onConfirm={voiceInput.stop}
                   onCancel={voiceInput.cancel}
                 />
                 {showStopAction ? (

@@ -81,6 +81,7 @@ Full docs live in [docs/](./docs). There's no docs site yet.
 - [Keyboard shortcuts](./docs/user/keybindings.md)
 - [Project settings](./docs/user/project-settings.md)
 - [Remote access from a phone or another machine](./docs/user/remote-access.md)
+- [Pair a phone on Wi-Fi](./docs/user/pairing.md)
 - [Keeping app and server in sync](./docs/user/updating.md)
 - [Source control integrations](./docs/user/source-control.md)
 - Multiple accounts: [Codex](./docs/user/providers-codex.md) · [Claude](./docs/user/providers-claude.md)
@@ -119,3 +120,16 @@ Read [CONTRIBUTING.md](./CONTRIBUTING.md) before reporting a bug or opening a PR
 Have a feature request? Start an [Ideas discussion](https://github.com/pingdotgg/t3code/discussions/categories/ideas).
 
 Need support? Join the [Discord](https://discord.gg/jn4EGJjrvv).
+
+## This fork (LeBonhommePharma)
+
+Phone on the same Wi-Fi: [docs/PAIRING.md](./docs/PAIRING.md) (three steps). Bench overlay: [lp/README.md](./lp/README.md).
+
+```bash
+scripts/t3-sync.sh --check
+scripts/t3-sync.sh --apply
+scripts/t3-sync.sh --rollback
+scripts/t3-sync.sh --install-skills
+```
+
+`scripts/t3-update.sh` is the same command. Sync never writes `~/.t3/userdata` or wipes custom bench skills. The LaunchAgent in `lp/launchd/` is written, not loaded.

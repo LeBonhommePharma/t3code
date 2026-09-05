@@ -3,6 +3,34 @@
 Connect a phone, browser, or another desktop app to T3 Code running on a different
 machine. That machine must stay running and reachable while you work.
 
+## Pair a phone on the same Wi-Fi
+
+This is the usual case. Same network, then a QR. See [Pair a phone on Wi-Fi](./pairing.md)
+for the three-step flow.
+
+On the computer, open **Settings → Pair phone on Wi-Fi**. Turn on Wi-Fi pairing if
+this machine is only listening on itself, then show the QR. On the phone, add an
+environment and scan. Do not use a `127.0.0.1` QR — that address is the device
+opening the link, not the computer.
+
+For a command-line host that should listen on the LAN:
+
+```bash
+npx t3 serve --host 0.0.0.0
+npx t3 pair --lan
+```
+
+`--lan` refuses a localhost pairing URL instead of printing a QR the phone cannot
+use. If the phone is on a guest network, a different VLAN, or the port is blocked,
+fix that first. Tailscale and T3 Connect are fallbacks when the phone cannot join
+this LAN — they live under **Settings → Other ways to connect**.
+
+Pairing authorizes that device for future connections. Use a fresh one-time link
+for each new device; you do not need the original token to reconnect. Links
+created in Settings can only be copied from the client that created them while
+its Connections page stays open. If you leave or reload that page, create
+another link to share.
+
 ## T3 Connect
 
 T3 Connect makes an environment available to your other devices without setting
@@ -31,35 +59,20 @@ disconnect an otherwise healthy conversation.
 
 ## Pair over a LAN or private network
 
-Use direct pairing when the other device can reach the host's network address.
+Use [Pair a phone on Wi-Fi](./pairing.md) when the other device can reach the
+host's network address. The short version: same Wi-Fi, **Settings → Pair phone
+on Wi-Fi**, scan the QR.
 
-On a desktop host, open **Settings → Connections**, enable **Network access**,
-then create a pairing link using an address the other device can reach. Changing
-network access restarts the desktop app. You can turn it off in the same place.
-
-For a command-line host, replace `<private-ip>` with the host's LAN or tailnet
-address:
-
-```bash
-npx t3 serve --host <private-ip>
-```
-
-If a server is already running, generate a fresh link without restarting it:
+If a server is already running on a reachable address, generate a fresh link
+without restarting it:
 
 ```bash
 npx t3 pair
+npx t3 pair --lan
 ```
 
-Scan the QR code on your phone or paste the pairing URL into **Add environment**
-in the receiving app. Connection settings are under **Settings → Connections**
-on web and desktop and **Settings → Environments** on mobile. A loopback address
-such as `127.0.0.1` reaches only the device opening the link.
-
-Pairing authorizes that device for future connections. Use a fresh one-time link
-for each new device; you do not need the original token to reconnect. Links
-created in Settings can only be copied from the client that created them while
-its Connections page stays open. If you leave or reload that page, create
-another link to share.
+Connection settings are under **Settings → Connections** on web and desktop and
+**Settings → Environments** on mobile.
 
 ### Tailscale HTTPS
 

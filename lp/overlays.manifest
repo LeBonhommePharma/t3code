@@ -1,0 +1,24 @@
+# Paths this fork must keep across upstream sync. One path per line.
+# t3-sync.sh snapshots these before merge and restores them after.
+# Product docs that live in docs/user and are also edited upstream are
+# merged as git files, not force-restored, so upstream wording still lands.
+lp
+scripts/t3-sync.sh
+scripts/t3-sync.test.mjs
+scripts/t3-update.sh
+docs/PAIRING.md
+docs/user/pairing.md
+.agents/skills/flexaidds
+.agents/skills/shannon
+.agents/skills/bench
+.agents/skills/posebust
+lp
+scripts/t3-sync.sh
+scripts/t3-sync.test.mjs
+scripts/t3-update.sh
+docs/PAIRING.md
+docs/user/pairing.md
+.agents/skills/flexaidds
+.agents/skills/shannon
+.agents/skills/bench
+.agents/skills/posebust

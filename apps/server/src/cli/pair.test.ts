@@ -26,6 +26,7 @@ import {
 } from "../serverRuntimeState.ts";
 import {
   DevServerNotProxiableError,
+  directPairingNotes,
   resolveDirectPairingBaseUrl,
   resolveTailscaleLocalTarget,
 } from "./pair.ts";
@@ -54,6 +55,17 @@ describe("pair base URL selection", () => {
       "http://100.64.0.7:3773",
     );
     expect(resolveDirectPairingBaseUrl(baseState)).toBe("http://localhost:3773");
+  });
+
+  it("explains localhost vs LAN instead of leading with Tailscale", () => {
+    const loopbackNotes = directPairingNotes({ loopback: true, lanRequired: false });
+    expect(loopbackNotes[0]).toContain("phone cannot use");
+    expect(loopbackNotes.join("\n")).toContain("Pair phone on Wi-Fi");
+    expect(loopbackNotes.join("\n")).not.toMatch(/^This URL is only reachable from this machine/);
+
+    const lanNotes = directPairingNotes({ loopback: false, lanRequired: true });
+    expect(lanNotes[0]).toContain("Same Wi-Fi");
+    expect(lanNotes.join("\n")).toContain("optional fallbacks");
   });
 });
 
