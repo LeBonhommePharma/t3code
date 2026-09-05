@@ -1,7 +1,12 @@
-import { existsSync, readdirSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
-import { spawnSync } from "node:child_process";
+import * as NodeFS from "node:fs";
+import * as NodeOS from "node:os";
+import * as NodePath from "node:path";
+import * as NodeChildProcess from "node:child_process";
+
+const { existsSync, readdirSync } = NodeFS;
+const { homedir } = NodeOS;
+const { join } = NodePath;
+const { spawnSync } = NodeChildProcess;
 
 import { expandPath, loadConfig, STANDDOWN } from "./lib.mjs";
 
@@ -116,7 +121,8 @@ export function inspectPosebust(config = loadConfig()) {
     cmake: presentRoots.map((root) => existsEntry(root, "CMakeLists.txt")),
     cliHelp: "posebust --native --pred <lig.sdf> --protein <rec.pdb> [-l crystal.sdf]",
     policy: {
-      default: "score-only NativePoseQC. Prefer official posebust CLI when on PATH or POSEBUST_BIN.",
+      default:
+        "score-only NativePoseQC. Prefer official posebust CLI when on PATH or POSEBUST_BIN.",
       never: ["GA pb_clash insert", "upstream --bust unless POSEBUST_ALLOW_BUST=1"],
       buildHint,
     },

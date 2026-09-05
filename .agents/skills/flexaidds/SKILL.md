@@ -9,14 +9,14 @@ This skill is the T3 Code stand-in for LP's omp `bench` extension. Run the CLI f
 
 ## Defaults (overridable)
 
-| Role | Path / env |
-| --- | --- |
-| Project | `~/Projects/FlexAIDdS` (`FLEXAIDDS_ROOT`) |
-| Results | `~/flexaidds_results` (`FLEXAIDDS_RESULTS`) |
+| Role      | Path / env                                      |
+| --------- | ----------------------------------------------- |
+| Project   | `~/Projects/FlexAIDdS` (`FLEXAIDDS_ROOT`)       |
+| Results   | `~/flexaidds_results` (`FLEXAIDDS_RESULTS`)     |
 | Artifacts | `~/Downloads/Artifacts` (`FLEXAIDDS_ARTIFACTS`) |
-| PoseBust | `~/Projects/PoseBust` (`POSEBUST_ROOT`) |
-| Shannon | `~/Projects/Shannon` (`SHANNON_ROOT`) |
-| State | `~/.t3code/bench` (`T3_BENCH_HOME`) |
+| PoseBust  | `~/Projects/PoseBust` (`POSEBUST_ROOT`)         |
+| Shannon   | `~/Projects/Shannon` (`SHANNON_ROOT`)           |
+| State     | `~/.t3code/bench` (`T3_BENCH_HOME`)             |
 
 Point any of those env vars at another tree if the Mac paths differ.
 

@@ -107,7 +107,11 @@ export const PairPhoneOnWifiRow = memo(function PairPhoneOnWifiRow({
               Turn on Wi-Fi pairing
             </Button>
           ) : (
-            <Button size="sm" disabled={!lanEndpoint || isCreating} onClick={() => void handleShowQr()}>
+            <Button
+              size="sm"
+              disabled={!lanEndpoint || isCreating}
+              onClick={() => void handleShowQr()}
+            >
               <SmartphoneIcon className="size-3.5" />
               {isCreating ? "Preparing…" : "Show QR"}
             </Button>
@@ -127,7 +131,9 @@ export const PairPhoneOnWifiRow = memo(function PairPhoneOnWifiRow({
               <QRCodeSvg value={pairingUrl} size={220} marginSize={2} title="Phone pairing QR" />
             ) : null}
             {pairingUrl ? (
-              <p className="w-full break-all text-center text-xs text-muted-foreground">{pairingUrl}</p>
+              <p className="w-full break-all text-center text-xs text-muted-foreground">
+                {pairingUrl}
+              </p>
             ) : null}
           </DialogPanel>
           <DialogFooter variant="bare">

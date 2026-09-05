@@ -3,8 +3,15 @@ import { ConnectionBlockedError } from "./model.ts";
 const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
 
 export function isLoopbackPairingHostname(hostname: string): boolean {
-  const host = hostname.trim().toLowerCase().replace(/^\[|\]$/g, "");
-  return LOOPBACK_HOSTS.has(host) || LOOPBACK_HOSTS.has(hostname.trim().toLowerCase()) || host.startsWith("127.");
+  const host = hostname
+    .trim()
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "");
+  return (
+    LOOPBACK_HOSTS.has(host) ||
+    LOOPBACK_HOSTS.has(hostname.trim().toLowerCase()) ||
+    host.startsWith("127.")
+  );
 }
 
 export function hostnameFromUrl(value: string): string | null {
@@ -20,7 +27,11 @@ export function isPhoneLikeClient(metadata: {
   readonly surface?: string;
   readonly deviceType?: string;
 }): boolean {
-  return metadata.surface === "mobile" || metadata.deviceType === "mobile" || metadata.deviceType === "tablet";
+  return (
+    metadata.surface === "mobile" ||
+    metadata.deviceType === "mobile" ||
+    metadata.deviceType === "tablet"
+  );
 }
 
 export const LOOPBACK_PHONE_PAIRING_DETAIL =

@@ -1,10 +1,18 @@
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { spawnSync } from "node:child_process";
-import { fileURLToPath } from "node:url";
+import * as NodeTest from "node:test";
+import * as NodeAssert from "node:assert/strict";
+import * as NodeFS from "node:fs";
+import * as NodeOS from "node:os";
+import * as NodePath from "node:path";
+import * as NodeChildProcess from "node:child_process";
+import * as NodeURL from "node:url";
+
+const { describe, it } = NodeTest;
+const assert = NodeAssert;
+const { mkdtempSync, mkdirSync, writeFileSync } = NodeFS;
+const { tmpdir } = NodeOS;
+const { join } = NodePath;
+const { spawnSync } = NodeChildProcess;
+const { fileURLToPath } = NodeURL;
 
 import {
   ARMS,
@@ -53,9 +61,10 @@ describe("bench standdown", () => {
 describe("astex csv", () => {
   it("flags hung vs pool vs claim_ready CONFLICT", () => {
     const rows = parseAstexCsv(
-      ["pdb,arm_id,metric_lane,hung,pool,claim_ready,score", "1ABC,pool-native,SCORE_NATIVE,1,1,0,9"].join(
-        "\n",
-      ),
+      [
+        "pdb,arm_id,metric_lane,hung,pool,claim_ready,score",
+        "1ABC,pool-native,SCORE_NATIVE,1,1,0,9",
+      ].join("\n"),
     );
     assert.equal(rows.length, 1);
     assert.match(metricConflict(rows[0]), /CONFLICT/);
@@ -159,7 +168,10 @@ describe("dataset and posebust inspect", () => {
 
     const listed = inspectBenchmarkDataset(loadConfig({ flexaidds: root }));
     assert.equal(listed.registry.length, 1);
-    assert.equal(inspectDataset(loadConfig({ flexaidds: root })).yamlSlugs[0], "astex_diverse.yaml");
+    assert.equal(
+      inspectDataset(loadConfig({ flexaidds: root })).yamlSlugs[0],
+      "astex_diverse.yaml",
+    );
     assert.equal(parsed.protocols.astexNative85.exists, false);
 
     const printed = spawnSync(process.execPath, [CLI, "dataset", "run", "--dry-run"], {

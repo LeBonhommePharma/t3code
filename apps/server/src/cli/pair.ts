@@ -169,7 +169,6 @@ export const directPairingNotes = (input: {
   ];
 };
 
-
 export class DevServerNotProxiableError extends Schema.TaggedErrorClass<DevServerNotProxiableError>()(
   "DevServerNotProxiableError",
   { devUrl: Schema.String },

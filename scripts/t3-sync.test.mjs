@@ -1,10 +1,18 @@
-import { spawnSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
-import { describe, it } from "node:test";
-import assert from "node:assert/strict";
-import { fileURLToPath } from "node:url";
+import * as NodeChildProcess from "node:child_process";
+import * as NodeFS from "node:fs";
+import * as NodeOS from "node:os";
+import * as NodePath from "node:path";
+import * as NodeTest from "node:test";
+import * as NodeAssert from "node:assert/strict";
+import * as NodeURL from "node:url";
+
+const { spawnSync } = NodeChildProcess;
+const { mkdtempSync, mkdirSync, writeFileSync, readFileSync, existsSync } = NodeFS;
+const { tmpdir } = NodeOS;
+const { join } = NodePath;
+const { describe, it } = NodeTest;
+const assert = NodeAssert;
+const { fileURLToPath } = NodeURL;
 
 const ROOT = fileURLToPath(new URL("..", import.meta.url));
 const SCRIPT = join(ROOT, "scripts/t3-sync.sh");
@@ -18,10 +26,14 @@ function run(args, env = {}, cwd = ROOT) {
 }
 
 function git(cwd, ...args) {
-  const result = spawnSync("git", ["-c", "user.email=t3-sync@test", "-c", "user.name=t3-sync", ...args], {
-    cwd,
-    encoding: "utf8",
-  });
+  const result = spawnSync(
+    "git",
+    ["-c", "user.email=t3-sync@test", "-c", "user.name=t3-sync", ...args],
+    {
+      cwd,
+      encoding: "utf8",
+    },
+  );
   assert.equal(result.status, 0, result.stderr);
   return result;
 }
@@ -220,15 +232,19 @@ describe("t3-sync.sh", () => {
     const commandDest = join(home, ".claude/commands");
     mkdirSync(commandDest, { recursive: true });
     writeFileSync(join(commandDest, "keep-me.md"), "stay\n");
-    const installAgain = spawnSync("bash", [join(fork, "scripts", "t3-sync.sh"), "--install-skills"], {
-      cwd: fork,
-      encoding: "utf8",
-      env: {
-        ...process.env,
-        T3_SYNC_HOME: home,
-        T3_SYNC_SKILL_HOME: home,
+    const installAgain = spawnSync(
+      "bash",
+      [join(fork, "scripts", "t3-sync.sh"), "--install-skills"],
+      {
+        cwd: fork,
+        encoding: "utf8",
+        env: {
+          ...process.env,
+          T3_SYNC_HOME: home,
+          T3_SYNC_SKILL_HOME: home,
+        },
       },
-    });
+    );
     assert.equal(installAgain.status, 0, installAgain.stdout + installAgain.stderr);
     assert.equal(readFileSync(join(commandDest, "bench.md"), "utf8"), "slash-from-repo\n");
     assert.equal(readFileSync(join(commandDest, "keep-me.md"), "utf8"), "stay\n");
@@ -297,7 +313,9 @@ describe("t3-sync.sh", () => {
       env,
     });
     assert.equal(second.status, 0, second.stdout + second.stderr);
-    const snaps = spawnSync("bash", ["-lc", `ls -1 "${home}/sync-snapshots"`], { encoding: "utf8" });
+    const snaps = spawnSync("bash", ["-lc", `ls -1 "${home}/sync-snapshots"`], {
+      encoding: "utf8",
+    });
     const ids = snaps.stdout.trim().split("\n").filter(Boolean);
     assert.equal(ids.length, 1, snaps.stdout);
   });

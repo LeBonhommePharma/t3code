@@ -27,12 +27,12 @@ In the T3 Code phone app, **Add environment → Scan QR**. Stay on that Wi-Fi. Y
 
 ## If it fails
 
-| What you see | What to do |
-| --- | --- |
-| Pairing link / QR is `127.0.0.1` or `localhost` | That address is this device, not the computer. Go back to step 2 and get a `192.168…` / `10…` QR. |
-| Connection refused | T3 is not accepting LAN connections, or the port is firewalled. Turn on Wi-Fi pairing (desktop) or restart with `--host 0.0.0.0`, then allow the port. |
-| Timed out / unreachable | Wrong Wi-Fi, guest network, AP isolation, or VLAN. Same network as the computer. |
-| Host not found | The pairing URL is wrong or DNS failed. Scan again; do not type localhost. |
+| What you see                                    | What to do                                                                                                                                             |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| Pairing link / QR is `127.0.0.1` or `localhost` | That address is this device, not the computer. Go back to step 2 and get a `192.168…` / `10…` QR.                                                      |
+| Connection refused                              | T3 is not accepting LAN connections, or the port is firewalled. Turn on Wi-Fi pairing (desktop) or restart with `--host 0.0.0.0`, then allow the port. |
+| Timed out / unreachable                         | Wrong Wi-Fi, guest network, AP isolation, or VLAN. Same network as the computer.                                                                       |
+| Host not found                                  | The pairing URL is wrong or DNS failed. Scan again; do not type localhost.                                                                             |
 
 Tailscale HTTPS and T3 Connect stay available under **Settings → Other ways to connect** when the phone is not on this LAN. They are fallbacks, not the first fix.
 

@@ -3224,7 +3224,11 @@ export function ConnectionsSettings() {
                     title="Other ways to connect"
                     description="Tailscale, T3 Connect, WSL, and extra endpoints. Same-Wi-Fi pairing is the row above."
                     control={
-                      <Button size="xs" variant="outline" onClick={() => setShowAdvancedConnections(true)}>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => setShowAdvancedConnections(true)}
+                      >
                         Show
                       </Button>
                     }
@@ -3241,7 +3245,11 @@ export function ConnectionsSettings() {
                     title="Other ways to connect"
                     description="T3 Connect and tunnels. Prefer a LAN QR when the phone is on this Wi-Fi."
                     control={
-                      <Button size="xs" variant="outline" onClick={() => setShowAdvancedConnections(true)}>
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => setShowAdvancedConnections(true)}
+                      >
                         Show
                       </Button>
                     }

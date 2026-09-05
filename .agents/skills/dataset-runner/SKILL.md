@@ -11,13 +11,13 @@ The runner lives in FlexAIDDS, not in this fork. T3 only **inspects**. Official 
 PYTHONPATH="$FLEXAIDDS_ROOT/python" python3 -m flexaidds.dataset_runner --help
 ```
 
-| Entry | Path under FlexAIDDS |
-| --- | --- |
-| Python CLI | `python/flexaidds/dataset_runner/cli.py` (`python3 -m flexaidds.dataset_runner`) |
-| Python runner | `python/flexaidds/dataset_runner/runner.py` |
-| Shim | `benchmarks/DatasetRunner.py` → `flexaidds.dataset_runner.runner` |
-| Shim CLI | `benchmarks/run.py` → `flexaidds.dataset_runner.cli` |
-| Native C++ | `LIB/DatasetRunner.h` (inspect only; do not compile from T3) |
+| Entry         | Path under FlexAIDDS                                                             |
+| ------------- | -------------------------------------------------------------------------------- |
+| Python CLI    | `python/flexaidds/dataset_runner/cli.py` (`python3 -m flexaidds.dataset_runner`) |
+| Python runner | `python/flexaidds/dataset_runner/runner.py`                                      |
+| Shim          | `benchmarks/DatasetRunner.py` → `flexaidds.dataset_runner.runner`                |
+| Shim CLI      | `benchmarks/run.py` → `flexaidds.dataset_runner.cli`                             |
+| Native C++    | `LIB/DatasetRunner.h` (inspect only; do not compile from T3)                     |
 
 ```bash
 node lp/bench/cli.mjs dataset

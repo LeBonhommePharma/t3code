@@ -1,5 +1,8 @@
-import { homedir } from "node:os";
-import { join } from "node:path";
+import * as NodeOS from "node:os";
+import * as NodePath from "node:path";
+
+const { homedir } = NodeOS;
+const { join } = NodePath;
 
 export const DEFAULT_PATHS = {
   flexaidds: join(homedir(), "Projects/FlexAIDdS"),
@@ -61,12 +64,20 @@ export function expandPath(value) {
 
 export function loadConfig(overrides = {}) {
   return {
-    flexaidds: expandPath(overrides.flexaidds ?? process.env.FLEXAIDDS_ROOT ?? DEFAULT_PATHS.flexaidds),
-    results: expandPath(overrides.results ?? process.env.FLEXAIDDS_RESULTS ?? DEFAULT_PATHS.results),
-    artifacts: expandPath(overrides.artifacts ?? process.env.FLEXAIDDS_ARTIFACTS ?? DEFAULT_PATHS.artifacts),
+    flexaidds: expandPath(
+      overrides.flexaidds ?? process.env.FLEXAIDDS_ROOT ?? DEFAULT_PATHS.flexaidds,
+    ),
+    results: expandPath(
+      overrides.results ?? process.env.FLEXAIDDS_RESULTS ?? DEFAULT_PATHS.results,
+    ),
+    artifacts: expandPath(
+      overrides.artifacts ?? process.env.FLEXAIDDS_ARTIFACTS ?? DEFAULT_PATHS.artifacts,
+    ),
     shannon: expandPath(overrides.shannon ?? process.env.SHANNON_ROOT ?? DEFAULT_PATHS.shannon),
     posebust: expandPath(overrides.posebust ?? process.env.POSEBUST_ROOT ?? DEFAULT_PATHS.posebust),
-    stateDir: expandPath(overrides.stateDir ?? process.env.T3_BENCH_HOME ?? join(homedir(), ".t3code/bench")),
+    stateDir: expandPath(
+      overrides.stateDir ?? process.env.T3_BENCH_HOME ?? join(homedir(), ".t3code/bench"),
+    ),
   };
 }
 
@@ -87,7 +98,10 @@ export function standdownViolations(arm) {
 }
 
 export function parseAstexCsv(text) {
-  const lines = text.trim().split(/\r?\n/).filter((line) => line.length > 0);
+  const lines = text
+    .trim()
+    .split(/\r?\n/)
+    .filter((line) => line.length > 0);
   if (lines.length === 0) return [];
   const header = lines[0].split(",").map((cell) => cell.trim());
   return lines.slice(1).map((line) => {

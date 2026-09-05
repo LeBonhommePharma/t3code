@@ -1,5 +1,8 @@
-import { spawnSync } from "node:child_process";
-import { join } from "node:path";
+import * as NodeChildProcess from "node:child_process";
+import * as NodePath from "node:path";
+
+const { spawnSync } = NodeChildProcess;
+const { join } = NodePath;
 
 const WRITE_ACTIONS = new Set(["launchish", "write-results", "admit", "standdown-apply"]);
 

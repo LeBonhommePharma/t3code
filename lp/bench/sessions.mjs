@@ -1,6 +1,10 @@
-import { mkdirSync, readFileSync, writeFileSync, existsSync } from "node:fs";
-import { join } from "node:path";
-import { randomUUID } from "node:crypto";
+import * as NodeFS from "node:fs";
+import * as NodePath from "node:path";
+import * as NodeCrypto from "node:crypto";
+
+const { mkdirSync, readFileSync, writeFileSync, existsSync } = NodeFS;
+const { join } = NodePath;
+const { randomUUID } = NodeCrypto;
 
 import { glueSession, loadConfig } from "./lib.mjs";
 

@@ -19,14 +19,14 @@ Optional live Shannon gate: `export SHANNON_GATE_LIVE=1`.
 
 Default Mac paths (override with env if the tree lives elsewhere):
 
-| Tree | Default | Env |
-| --- | --- | --- |
-| FlexAIDDS | `~/Projects/FlexAIDdS` | `FLEXAIDDS_ROOT` |
-| PoseBust | `~/Projects/PoseBust` | `POSEBUST_ROOT` / `POSEBUST_BIN` |
-| Shannon | `~/Projects/Shannon` | `SHANNON_ROOT` |
-| Results | `~/flexaidds_results` | `FLEXAIDDS_RESULTS` |
-| Artifacts | `~/Downloads/Artifacts` | `FLEXAIDDS_ARTIFACTS` |
-| Bench state | `~/.t3code/bench` | `T3_BENCH_HOME` |
+| Tree        | Default                 | Env                              |
+| ----------- | ----------------------- | -------------------------------- |
+| FlexAIDDS   | `~/Projects/FlexAIDdS`  | `FLEXAIDDS_ROOT`                 |
+| PoseBust    | `~/Projects/PoseBust`   | `POSEBUST_ROOT` / `POSEBUST_BIN` |
+| Shannon     | `~/Projects/Shannon`    | `SHANNON_ROOT`                   |
+| Results     | `~/flexaidds_results`   | `FLEXAIDDS_RESULTS`              |
+| Artifacts   | `~/Downloads/Artifacts` | `FLEXAIDDS_ARTIFACTS`            |
+| Bench state | `~/.t3code/bench`       | `T3_BENCH_HOME`                  |
 
 `--install-skills` copies into `~/.agents/skills`, `~/.claude/skills`, `~/.cursor/skills`, and `~/.codex/skills`, plus Claude slash files into `~/.claude/commands`. Override the home for those dests with `T3_SYNC_SKILL_HOME` (default `$HOME`).
 
@@ -34,16 +34,16 @@ Default Mac paths (override with env if the tree lives elsewhere):
 
 Composer (Settings → General → Show skills in slash menu, plus Claude `.claude/commands`):
 
-| Slash / `$` | Inspect |
-| --- | --- |
-| `/bench` `$bench` | arms, status, standdown, session |
-| `/admit` `$admit` | admit a standdown-safe arm |
-| `/rank12` `$rank12` | top-12 SCORE_NATIVE CSV |
-| `/dataset-runner` `$dataset-runner` | DatasetRunner entrypoints (no docking) |
+| Slash / `$`                               | Inspect                                              |
+| ----------------------------------------- | ---------------------------------------------------- |
+| `/bench` `$bench`                         | arms, status, standdown, session                     |
+| `/admit` `$admit`                         | admit a standdown-safe arm                           |
+| `/rank12` `$rank12`                       | top-12 SCORE_NATIVE CSV                              |
+| `/dataset-runner` `$dataset-runner`       | DatasetRunner entrypoints (no docking)               |
 | `/benchmark-dataset` `$benchmark-dataset` | Astex YAML / BENCHMARK_STANDARD / admission contract |
-| `/posebust` `$posebust` | official CLI status / build hint / NativePoseQC |
-| `/shannon` `$shannon` | Shannon root + fail-open gate |
-| `/flexaidds` `$flexaidds` | campaign + DatasetRunner / Astex |
+| `/posebust` `$posebust`                   | official CLI status / build hint / NativePoseQC      |
+| `/shannon` `$shannon`                     | Shannon root + fail-open gate                        |
+| `/flexaidds` `$flexaidds`                 | campaign + DatasetRunner / Astex                     |
 
 State lives in `~/.t3code/bench/` (sessions, admitted arms). Sync snapshots and logs live next to it under `~/.t3code/`. That is **not** `~/.t3/userdata`. Sync rollback never deletes bench sessions or T3 userdata. Skill install is merge-only: extra files LP dropped into `~/.agents/skills/bench` (and siblings) stay.
 

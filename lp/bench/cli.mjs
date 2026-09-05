@@ -1,7 +1,11 @@
 #!/usr/bin/env node
-import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync, mkdirSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
+import * as NodeChildProcess from "node:child_process";
+import * as NodeFS from "node:fs";
+import * as NodePath from "node:path";
+
+const { spawnSync } = NodeChildProcess;
+const { existsSync, readFileSync, mkdirSync, writeFileSync } = NodeFS;
+const { join } = NodePath;
 
 import {
   ARMS,
@@ -82,9 +86,7 @@ async function main(argv) {
       process.stdout.write(usage());
       return 0;
     case "arms": {
-      process.stdout.write(
-        `${JSON.stringify({ standdown: STANDDOWN, arms: ARMS }, null, 2)}\n`,
-      );
+      process.stdout.write(`${JSON.stringify({ standdown: STANDDOWN, arms: ARMS }, null, 2)}\n`);
       return 0;
     }
     case "compare": {
@@ -102,9 +104,7 @@ async function main(argv) {
         id: arm.id,
         violations: standdownViolations(arm),
       }));
-      process.stdout.write(
-        `${JSON.stringify({ constraints: STANDDOWN, report }, null, 2)}\n`,
-      );
+      process.stdout.write(`${JSON.stringify({ constraints: STANDDOWN, report }, null, 2)}\n`);
       return 0;
     }
     case "admit": {
@@ -242,7 +242,9 @@ async function main(argv) {
         const protein = proteinFlag >= 0 ? argv[proteinFlag + 1] : undefined;
         const crystal = crystalFlag >= 0 ? argv[crystalFlag + 1] : undefined;
         if (!pred || !protein) {
-          process.stderr.write("posebust validate requires --pred and --protein (native score-only)\n");
+          process.stderr.write(
+            "posebust validate requires --pred and --protein (native score-only)\n",
+          );
           return 1;
         }
         const inspect = inspectPosebust(config);
@@ -253,7 +255,9 @@ async function main(argv) {
           return 1;
         }
         if (argv.includes("--bust") && process.env.POSEBUST_ALLOW_BUST !== "1") {
-          process.stderr.write("refusing --bust (no GA pb_clash). NativePoseQC only unless POSEBUST_ALLOW_BUST=1.\n");
+          process.stderr.write(
+            "refusing --bust (no GA pb_clash). NativePoseQC only unless POSEBUST_ALLOW_BUST=1.\n",
+          );
           return 1;
         }
         const args = ["--native", "--pred", pred, "--protein", protein];
@@ -261,7 +265,7 @@ async function main(argv) {
         const result = spawnSync(inspect.binary, args, { encoding: "utf8" });
         process.stdout.write(result.stdout);
         process.stderr.write(result.stderr);
-        return result.status === 0 ? 0 : result.status ?? 1;
+        return result.status === 0 ? 0 : (result.status ?? 1);
       }
       process.stdout.write(`${JSON.stringify(inspectPosebust(config), null, 2)}\n`);
       return 0;

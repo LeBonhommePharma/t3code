@@ -7,16 +7,16 @@ description: T3 Code first-party FlexAIDDS/Shannon/PoseBust bench CLI. Use for /
 
 Entry point: `node lp/bench/cli.mjs`. Composer slash (when skills are in the slash menu) and `$` mentions:
 
-| Surface | What it does |
-| --- | --- |
-| `/bench` `$bench` | arms, status, standdown, session |
-| `/admit` `$admit` | admit a standdown-safe arm |
-| `/rank12` `$rank12` | top-12 SCORE_NATIVE CSV |
-| `/dataset-runner` `$dataset-runner` | DatasetRunner inspect (no docking) |
+| Surface                                   | What it does                                         |
+| ----------------------------------------- | ---------------------------------------------------- |
+| `/bench` `$bench`                         | arms, status, standdown, session                     |
+| `/admit` `$admit`                         | admit a standdown-safe arm                           |
+| `/rank12` `$rank12`                       | top-12 SCORE_NATIVE CSV                              |
+| `/dataset-runner` `$dataset-runner`       | DatasetRunner inspect (no docking)                   |
 | `/benchmark-dataset` `$benchmark-dataset` | Astex YAML / BENCHMARK_STANDARD / admission contract |
-| `/posebust` `$posebust` | native pose status/build-hint/validate |
-| `/shannon` `$shannon` | Shannon root + fail-open gate |
-| `/flexaidds` `$flexaidds` | campaign + DatasetRunner / Astex |
+| `/posebust` `$posebust`                   | native pose status/build-hint/validate               |
+| `/shannon` `$shannon`                     | Shannon root + fail-open gate                        |
+| `/flexaidds` `$flexaidds`                 | campaign + DatasetRunner / Astex                     |
 
 Claude also loads `.claude/commands/*.md` for the same names.
 
