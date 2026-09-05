@@ -9,6 +9,7 @@ import {
   type ConnectionAttemptError,
   ConnectionTransientError,
 } from "./model.ts";
+import { describeDirectPairingFailure } from "./lanPairingErrors.ts";
 
 export function profileMissingError(connectionId: string): ConnectionBlockedError {
   return new ConnectionBlockedError({
@@ -149,12 +150,24 @@ export function mapRemoteEnvironmentError(
     case "RemoteEnvironmentAuthTimeoutError":
       return new ConnectionTransientError({
         reason: "timeout",
-        detail: `${error.message}${networkHint}`,
+        detail:
+          connectionMethod === "relay"
+            ? `${error.message}${networkHint}`
+            : describeDirectPairingFailure({
+                requestUrl: error.requestUrl,
+                message: error.message,
+              }),
       });
     case "RemoteEnvironmentAuthFetchError":
       return new ConnectionTransientError({
         reason: "network",
-        detail: `${error.message}${networkHint}`,
+        detail:
+          connectionMethod === "relay"
+            ? `${error.message}${networkHint}`
+            : describeDirectPairingFailure({
+                message: error.message,
+                cause: error.cause,
+              }),
       });
     case "EnvironmentInternalError":
       return new ConnectionTransientError({

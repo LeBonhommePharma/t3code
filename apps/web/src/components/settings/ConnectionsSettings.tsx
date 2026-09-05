@@ -50,8 +50,10 @@ import {
   applyWslEnableSelection,
   isQrShareableEndpoint,
   isWslSettingsRowVisible,
+  selectLanPairingEndpoint,
   selectQrEndpointOption,
 } from "./ConnectionsSettings.logic";
+import { PairPhoneOnWifiRow } from "./PairPhoneOnWifi";
 import {
   SettingsPageContainer,
   SettingsRow,
@@ -1886,6 +1888,7 @@ export function ConnectionsSettings() {
     serverEnvironment.updateStateAtom(primaryEnvironmentId),
   );
   const [isAdvertisedEndpointListExpanded, setIsAdvertisedEndpointListExpanded] = useState(false);
+  const [showAdvancedConnections, setShowAdvancedConnections] = useState(false);
   const defaultAdvertisedEndpointKey = useUiStateStore(
     (state) => state.defaultAdvertisedEndpointKey,
   );
@@ -2426,6 +2429,10 @@ export function ConnectionsSettings() {
   );
   const isLocalBackendRemotelyReachable =
     isLocalBackendNetworkAccessible || tailscaleHttpsEndpoint?.status === "available";
+  const lanPairingEndpoint = useMemo(
+    () => selectLanPairingEndpoint(visibleDesktopNetworkAdvertisedEndpoints),
+    [visibleDesktopNetworkAdvertisedEndpoints],
+  );
   const defaultDesktopNetworkAdvertisedEndpoint = useMemo(
     () =>
       selectPairingEndpoint(visibleDesktopNetworkAdvertisedEndpoints, defaultAdvertisedEndpointKey),
@@ -3192,18 +3199,62 @@ export function ConnectionsSettings() {
                 }
               />
             ) : null}
+            <PairPhoneOnWifiRow
+              networkAccessible={isLocalBackendNetworkAccessible}
+              lanEndpoint={lanPairingEndpoint}
+              canToggleNetwork={Boolean(desktopBridge)}
+              onEnableNetworkAccess={() => {
+                setPendingDesktopServerExposureMode("network-accessible");
+                setIsDesktopServerExposureDialogOpen(true);
+              }}
+              onPairingLinkCreated={handlePairingLinkCreated}
+            />
             {desktopBridge ? (
               <>
                 {renderNetworkAccessRow()}
-                {renderEndpointRows("endpoint-rail")}
-                {renderTailscaleRow()}
-                {renderWslRow()}
-                <CloudLinkRow canManageRelay={canManageRelay} />
+                {showAdvancedConnections ? (
+                  <>
+                    {renderEndpointRows("endpoint-rail")}
+                    {renderTailscaleRow()}
+                    {renderWslRow()}
+                    <CloudLinkRow canManageRelay={canManageRelay} />
+                  </>
+                ) : (
+                  <SettingsRow
+                    title="Other ways to connect"
+                    description="Tailscale, T3 Connect, WSL, and extra endpoints. Same-Wi-Fi pairing is the row above."
+                    control={
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => setShowAdvancedConnections(true)}
+                      >
+                        Show
+                      </Button>
+                    }
+                  />
+                )}
               </>
             ) : (
               <>
                 {renderDisabledNetworkAccessRow()}
-                <CloudLinkRow canManageRelay={canManageRelay} />
+                {showAdvancedConnections ? (
+                  <CloudLinkRow canManageRelay={canManageRelay} />
+                ) : (
+                  <SettingsRow
+                    title="Other ways to connect"
+                    description="T3 Connect and tunnels. Prefer a LAN QR when the phone is on this Wi-Fi."
+                    control={
+                      <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={() => setShowAdvancedConnections(true)}
+                      >
+                        Show
+                      </Button>
+                    }
+                  />
+                )}
               </>
             )}
           </SettingsSection>

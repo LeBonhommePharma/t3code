@@ -8,6 +8,7 @@ import { remoteHttpClientLayer } from "../rpc/http.ts";
 import { ClientPresentation, SshEnvironmentGateway } from "../platform/capabilities.ts";
 import { BearerConnectionCredential, BearerConnectionProfile } from "./catalog.ts";
 import { BearerConnectionTarget } from "./model.ts";
+import { LOOPBACK_PHONE_PAIRING_DETAIL } from "./lanPairingErrors.ts";
 import {
   prepareBearerConnectionUpdate,
   preparePairingRegistration,
@@ -21,6 +22,18 @@ const CLIENT_PRESENTATION_LAYER = Layer.succeed(
       label: "T3 Code Test",
       deviceType: "desktop",
       os: "Test OS",
+    },
+    scopes: AuthStandardClientScopes,
+  }),
+);
+
+const MOBILE_PRESENTATION_LAYER = Layer.succeed(
+  ClientPresentation,
+  ClientPresentation.of({
+    metadata: {
+      label: "T3 Code Mobile",
+      deviceType: "mobile",
+      surface: "mobile",
     },
     scopes: AuthStandardClientScopes,
   }),
@@ -157,6 +170,25 @@ describe("connection onboarding", () => {
         reason: "configuration",
         message: "Enter a backend URL.",
       });
+      expect(calls).toEqual([]);
+    }),
+  );
+
+  it.effect("rejects localhost pairing URLs on a phone before fetching", () =>
+    Effect.gen(function* () {
+      const calls: Array<{ readonly url: string; readonly init: RequestInit }> = [];
+      const error = yield* preparePairingRegistration({
+        pairingUrl: "http://127.0.0.1:3773/pair#token=pairing-token",
+      }).pipe(
+        Effect.provide(Layer.mergeAll(MOBILE_PRESENTATION_LAYER, pairingHttpLayer(calls))),
+        Effect.flip,
+      );
+
+      expect(error).toMatchObject({
+        _tag: "ConnectionBlockedError",
+        reason: "configuration",
+      });
+      expect(error.message).toBe(LOOPBACK_PHONE_PAIRING_DETAIL);
       expect(calls).toEqual([]);
     }),
   );

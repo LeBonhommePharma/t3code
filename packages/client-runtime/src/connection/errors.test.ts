@@ -129,3 +129,40 @@ describe("mapRemoteDpopEnvironmentError", () => {
     expect(mapped.message).toBe(`The environment credential is invalid. ${DPOP_RETRY_HINT}`);
   });
 });
+
+describe("mapRemoteEnvironmentError LAN pairing", () => {
+  it("explains connection refused as a blocked port or local-only server", () => {
+    const mapped = mapRemoteEnvironmentError(
+      new RemoteEnvironmentAuthFetchError({
+        message: "Failed to fetch remote environment endpoint http://192.168.1.9:3773/.",
+        cause: new Error("connect ECONNREFUSED 192.168.1.9:3773"),
+      }),
+    );
+    expect(mapped).toMatchObject({
+      _tag: "ConnectionTransientError",
+      reason: "network",
+    });
+    expect(mapped.message).toContain("Nothing is accepting connections");
+    expect(mapped.message).toContain("Network access");
+  });
+
+  it("explains a timeout as the wrong Wi-Fi or a blocked port", () => {
+    const mapped = mapRemoteEnvironmentError(
+      new RemoteEnvironmentAuthTimeoutError("http://192.168.1.9:3773/", 10_000),
+    );
+    expect(mapped.reason).toBe("timeout");
+    expect(mapped.message).toContain("Timed out reaching 192.168.1.9");
+    expect(mapped.message).toContain("wrong Wi-Fi");
+  });
+
+  it("rejects a localhost pairing URL with a phone-facing explanation", () => {
+    const mapped = mapRemoteEnvironmentError(
+      new RemoteEnvironmentAuthFetchError({
+        message: "Failed to fetch remote environment endpoint http://127.0.0.1:3773/.",
+        cause: new TypeError("Failed to fetch"),
+      }),
+    );
+    expect(mapped.message).toContain("localhost");
+    expect(mapped.message).toContain("LAN address");
+  });
+});

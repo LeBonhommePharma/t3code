@@ -15,6 +15,7 @@
 - [Usage and limits](./user/usage.md)
 - [Product usage data](./user/telemetry.md)
 - [Remote access](./user/remote-access.md)
+- [Pair a phone on Wi-Fi](./user/pairing.md)
 - [Running in the background](./user/background-service.md)
 - [Updating T3 Code](./user/updating.md)
 - Provider guides: [Codex](./user/providers-codex.md) · [Claude](./user/providers-claude.md) · [OpenCode](./user/providers-opencode.md) · [Antigravity](./user/providers-antigravity.md)

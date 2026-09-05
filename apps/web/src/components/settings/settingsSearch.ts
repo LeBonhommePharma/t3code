@@ -446,6 +446,13 @@ export const SETTINGS_SEARCH_ITEMS = [
     localBackendManagementOnly: true,
   },
   {
+    id: "pair-phone",
+    title: "Pair phone on Wi-Fi",
+    to: "/settings/connections",
+    searchTerms: ["phone wifi qr scan lan local network"],
+    localBackendManagementOnly: true,
+  },
+  {
     id: "network-access",
     title: "Network access",
     to: "/settings/connections",

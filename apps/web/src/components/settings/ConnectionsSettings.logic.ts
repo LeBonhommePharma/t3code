@@ -11,6 +11,19 @@ export function isQrShareableEndpoint(endpoint: AdvertisedEndpoint): boolean {
   return endpoint.status !== "unavailable" && endpoint.reachability !== "loopback";
 }
 
+/** Same-LAN QR target: ignore Tailscale / loopback / hosted HTTPS. */
+export function selectLanPairingEndpoint(
+  endpoints: ReadonlyArray<AdvertisedEndpoint>,
+): AdvertisedEndpoint | null {
+  const available = endpoints.filter((endpoint) => isQrShareableEndpoint(endpoint));
+  return (
+    available.find((endpoint) => endpoint.reachability === "lan") ??
+    available.find((endpoint) => endpoint.id.startsWith("desktop-lan:")) ??
+    available.find((endpoint) => endpoint.reachability === "private-network") ??
+    null
+  );
+}
+
 export function isWslSettingsRowVisible(input: {
   readonly state: DesktopWslState | null;
   readonly error: string | null;
