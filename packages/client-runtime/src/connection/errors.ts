@@ -1,13 +1,15 @@
-import type { EnvironmentId } from "@t3tools/contracts";
+import type { ClientConnectionMethod, EnvironmentId } from "@t3tools/contracts";
 import type { RelayProtectedError } from "@t3tools/contracts/relay";
 import type { ManagedRelayClientError } from "../relay/managedRelay.ts";
 import { dpopFailureMessage, relayProtectedErrorMessage } from "../relay/errorPresentation.ts";
 import type { RemoteEnvironmentAuthError } from "../authorization/remote.ts";
+import { NETWORK_BLOCKING_HINT } from "../errors/network.ts";
 import {
   ConnectionBlockedError,
   type ConnectionAttemptError,
   ConnectionTransientError,
 } from "./model.ts";
+import { describeDirectPairingFailure } from "./lanPairingErrors.ts";
 
 export function profileMissingError(connectionId: string): ConnectionBlockedError {
   return new ConnectionBlockedError({
@@ -113,7 +115,9 @@ export function mapManagedRelayError(error: ManagedRelayClientError): Connection
 
 export function mapRemoteEnvironmentError(
   error: RemoteEnvironmentAuthError,
+  connectionMethod: ClientConnectionMethod = "direct",
 ): ConnectionAttemptError {
+  const networkHint = connectionMethod === "relay" ? ` ${NETWORK_BLOCKING_HINT}` : "";
   switch (error._tag) {
     case "EnvironmentAuthInvalidError":
       return new ConnectionBlockedError({
@@ -146,12 +150,24 @@ export function mapRemoteEnvironmentError(
     case "RemoteEnvironmentAuthTimeoutError":
       return new ConnectionTransientError({
         reason: "timeout",
-        detail: error.message,
+        detail:
+          connectionMethod === "relay"
+            ? `${error.message}${networkHint}`
+            : describeDirectPairingFailure({
+                requestUrl: error.requestUrl,
+                message: error.message,
+              }),
       });
     case "RemoteEnvironmentAuthFetchError":
       return new ConnectionTransientError({
         reason: "network",
-        detail: error.message,
+        detail:
+          connectionMethod === "relay"
+            ? `${error.message}${networkHint}`
+            : describeDirectPairingFailure({
+                message: error.message,
+                cause: error.cause,
+              }),
       });
     case "EnvironmentInternalError":
       return new ConnectionTransientError({
@@ -185,5 +201,5 @@ export function mapRemoteDpopEnvironmentError(
       traceId: error.traceId,
     });
   }
-  return mapRemoteEnvironmentError(error);
+  return mapRemoteEnvironmentError(error, "relay");
 }

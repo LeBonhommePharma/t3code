@@ -223,7 +223,9 @@ function VoiceActionButton(props: {
   readonly disabled?: boolean;
   readonly icon: AppSymbolName;
   readonly loading?: boolean;
-  readonly onPress: () => void;
+  readonly onPress?: () => void;
+  readonly onPressIn?: () => void;
+  readonly onPressOut?: () => void;
   readonly variant?: "plain" | "primary";
 }) {
   const variant = props.variant ?? "plain";
@@ -241,6 +243,8 @@ function VoiceActionButton(props: {
       className="size-[44px] shrink-0 items-center justify-center active:opacity-70"
       disabled={props.disabled}
       onPress={props.onPress}
+      onPressIn={props.onPressIn}
+      onPressOut={props.onPressOut}
       style={{ opacity: props.disabled && !props.loading ? 0.4 : 1 }}
     >
       <View
@@ -372,24 +376,19 @@ export function ComposerDictationPrimaryAction(props: {
   readonly onConfirm: () => void;
   readonly onCancel: () => void;
 }) {
-  if (props.presentation.trailingAction === "confirm") {
+  if (props.state.phase === "transcribing") {
     return (
       <VoiceActionButton
-        accessibilityLabel={
-          props.presentation.confirmationEnabled
-            ? "Finish dictation"
-            : (props.presentation.statusLabel ?? "Preparing voice input")
-        }
-        disabled={!props.presentation.confirmationEnabled}
+        accessibilityLabel="Transcribing"
+        disabled
         icon="checkmark"
-        loading={!props.presentation.confirmationEnabled}
-        onPress={props.onConfirm}
+        loading
         variant="primary"
       />
     );
   }
 
-  return <ComposerDictationStartAction {...props} />;
+  return <ComposerDictationStartAction {...props} onConfirm={props.onConfirm} />;
 }
 
 export function ComposerDictationStartAction(props: {
@@ -398,22 +397,34 @@ export function ComposerDictationStartAction(props: {
   readonly disabled?: boolean;
   readonly onStart: () => void;
   readonly onCancel: () => void;
+  readonly onConfirm?: () => void;
 }) {
   if (!props.isAvailable) return null;
   const openSettings = props.state.phase === "error" && props.state.errorAction === "settings";
+  const holding = props.state.phase === "preparing" || props.state.phase === "recording";
   return (
     <VoiceActionButton
-      accessibilityLabel={openSettings ? "Open microphone settings" : "Start dictation"}
+      accessibilityLabel={
+        openSettings
+          ? "Open microphone settings"
+          : holding
+            ? "Release to finish dictation"
+            : "Hold to dictate"
+      }
       disabled={props.disabled}
       icon="mic"
+      loading={props.state.phase === "preparing"}
+      variant={holding ? "primary" : "plain"}
       onPress={
         openSettings
           ? () => {
               props.onCancel();
               void Linking.openSettings();
             }
-          : props.onStart
+          : undefined
       }
+      onPressIn={openSettings || holding ? undefined : props.onStart}
+      onPressOut={openSettings || !holding ? undefined : props.onConfirm}
     />
   );
 }

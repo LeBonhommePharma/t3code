@@ -23,6 +23,7 @@ import {
 } from "./catalog.ts";
 import * as ConnectionCredentialStore from "./credentialStore.ts";
 import { mapRemoteEnvironmentError } from "./errors.ts";
+import { loopbackPairingBlock } from "./lanPairingErrors.ts";
 import {
   BearerConnectionTarget,
   ConnectionBlockedError,
@@ -88,6 +89,10 @@ export const preparePairingRegistration = Effect.fn(
 )(function* (input: PairingConnectionInput) {
   const target = yield* resolvePairingTarget(input);
   const presentation = yield* ClientCapabilities.ClientPresentation;
+  const loopbackBlock = loopbackPairingBlock(target.httpBaseUrl, presentation.metadata);
+  if (loopbackBlock) {
+    return yield* loopbackBlock;
+  }
   const descriptor = yield* fetchRemoteEnvironmentDescriptor({
     httpBaseUrl: target.httpBaseUrl,
   }).pipe(Effect.mapError(mapRemoteEnvironmentError));
