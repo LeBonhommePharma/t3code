@@ -150,6 +150,15 @@ export class LoopbackLanPairingError extends Schema.TaggedErrorClass<LoopbackLan
   }
 }
 
+export class ConflictingPairFlagsError extends Schema.TaggedErrorClass<ConflictingPairFlagsError>()(
+  "ConflictingPairFlagsError",
+  {},
+) {
+  override get message(): string {
+    return "--lan and --tailscale cannot be used together. --lan requires a same-Wi-Fi URL; --tailscale pairs through a Tailnet URL.";
+  }
+}
+
 export const directPairingNotes = (input: {
   readonly loopback: boolean;
   readonly lanRequired: boolean;
@@ -525,6 +534,10 @@ export const pairCommand = Command.make("pair", {
   ),
   Command.withHandler((flags) =>
     Effect.gen(function* () {
+      if (flags.lan && flags.tailscale) {
+        return yield* new ConflictingPairFlagsError();
+      }
+
       const cliLogLevel = yield* GlobalFlag.LogLevel;
       // Default to Warn so storage/migration chatter cannot bury the QR code;
       // an explicit --log-level still wins.

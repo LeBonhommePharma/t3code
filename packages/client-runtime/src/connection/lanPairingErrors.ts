@@ -1,17 +1,16 @@
+import { isLocalLoopbackHost, normalizeHostname } from "@t3tools/shared/hostClassification";
+
 import { ConnectionBlockedError } from "./model.ts";
 
-const LOOPBACK_HOSTS = new Set(["localhost", "127.0.0.1", "::1", "[::1]"]);
-
+/**
+ * Loopback for pairing URLs: 127/8 IPv4, ::1, `localhost`, `localhost.`,
+ * and RFC 6761 names under `.localhost`. A prefix like `127.example.com` is
+ * a real DNS name, not loopback.
+ */
 export function isLoopbackPairingHostname(hostname: string): boolean {
-  const host = hostname
-    .trim()
-    .toLowerCase()
-    .replace(/^\[|\]$/g, "");
-  return (
-    LOOPBACK_HOSTS.has(host) ||
-    LOOPBACK_HOSTS.has(hostname.trim().toLowerCase()) ||
-    host.startsWith("127.")
-  );
+  const host = normalizeHostname(hostname.trim());
+  if (host.length === 0) return false;
+  return isLocalLoopbackHost(host) || host.endsWith(".localhost");
 }
 
 export function hostnameFromUrl(value: string): string | null {
@@ -34,14 +33,19 @@ export function isPhoneLikeClient(metadata: {
   );
 }
 
+/** iOS Simulator loopback is the host Mac, unlike a physical phone. */
+export function isIosSimulatorClient(metadata: { readonly os?: string }): boolean {
+  return metadata.os?.trim().toLowerCase() === "ios simulator";
+}
+
 export const LOOPBACK_PHONE_PAIRING_DETAIL =
   "This pairing link points at localhost. The phone would dial itself, not the computer. On the computer, open Settings → Pair phone on Wi-Fi (or run t3 pair after enabling network access) so the QR uses a LAN address like 192.168.x.x.";
 
 export function loopbackPairingBlock(
   httpBaseUrl: string,
-  metadata: { readonly surface?: string; readonly deviceType?: string },
+  metadata: { readonly surface?: string; readonly deviceType?: string; readonly os?: string },
 ): ConnectionBlockedError | null {
-  if (!isPhoneLikeClient(metadata)) return null;
+  if (!isPhoneLikeClient(metadata) || isIosSimulatorClient(metadata)) return null;
   const hostname = hostnameFromUrl(httpBaseUrl);
   if (!hostname || !isLoopbackPairingHostname(hostname)) return null;
   return new ConnectionBlockedError({

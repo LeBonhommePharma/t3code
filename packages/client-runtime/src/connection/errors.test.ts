@@ -137,6 +137,8 @@ describe("mapRemoteEnvironmentError LAN pairing", () => {
         message: "Failed to fetch remote environment endpoint http://192.168.1.9:3773/.",
         cause: new Error("connect ECONNREFUSED 192.168.1.9:3773"),
       }),
+      "direct",
+      { pairing: true },
     );
     expect(mapped).toMatchObject({
       _tag: "ConnectionTransientError",
@@ -149,6 +151,8 @@ describe("mapRemoteEnvironmentError LAN pairing", () => {
   it("explains a timeout as the wrong Wi-Fi or a blocked port", () => {
     const mapped = mapRemoteEnvironmentError(
       new RemoteEnvironmentAuthTimeoutError("http://192.168.1.9:3773/", 10_000),
+      "direct",
+      { pairing: true },
     );
     expect(mapped.reason).toBe("timeout");
     expect(mapped.message).toContain("Timed out reaching 192.168.1.9");
@@ -161,8 +165,23 @@ describe("mapRemoteEnvironmentError LAN pairing", () => {
         message: "Failed to fetch remote environment endpoint http://127.0.0.1:3773/.",
         cause: new TypeError("Failed to fetch"),
       }),
+      "direct",
+      { pairing: true },
     );
     expect(mapped.message).toContain("localhost");
     expect(mapped.message).toContain("LAN address");
+  });
+
+  it("keeps SSH and established direct errors as the original network message", () => {
+    const fetchError = new RemoteEnvironmentAuthFetchError({
+      message: "Failed to fetch remote environment endpoint http://127.0.0.1:3201/.",
+      cause: new Error("connect ECONNREFUSED 127.0.0.1:3201"),
+    });
+    const timeoutError = new RemoteEnvironmentAuthTimeoutError("http://127.0.0.1:3201/", 10_000);
+
+    expect(mapRemoteEnvironmentError(fetchError, "ssh").message).toBe(fetchError.message);
+    expect(mapRemoteEnvironmentError(fetchError, "direct").message).toBe(fetchError.message);
+    expect(mapRemoteEnvironmentError(timeoutError, "ssh").message).toBe(timeoutError.message);
+    expect(mapRemoteEnvironmentError(fetchError, "ssh").message).not.toContain("phone");
   });
 });

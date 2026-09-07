@@ -116,8 +116,10 @@ export function mapManagedRelayError(error: ManagedRelayClientError): Connection
 export function mapRemoteEnvironmentError(
   error: RemoteEnvironmentAuthError,
   connectionMethod: ClientConnectionMethod = "direct",
+  options?: { readonly pairing?: boolean },
 ): ConnectionAttemptError {
   const networkHint = connectionMethod === "relay" ? ` ${NETWORK_BLOCKING_HINT}` : "";
+  const pairingGuidance = options?.pairing === true && connectionMethod === "direct";
   switch (error._tag) {
     case "EnvironmentAuthInvalidError":
       return new ConnectionBlockedError({
@@ -153,10 +155,12 @@ export function mapRemoteEnvironmentError(
         detail:
           connectionMethod === "relay"
             ? `${error.message}${networkHint}`
-            : describeDirectPairingFailure({
-                requestUrl: error.requestUrl,
-                message: error.message,
-              }),
+            : pairingGuidance
+              ? describeDirectPairingFailure({
+                  requestUrl: error.requestUrl,
+                  message: error.message,
+                })
+              : error.message,
       });
     case "RemoteEnvironmentAuthFetchError":
       return new ConnectionTransientError({
@@ -164,10 +168,12 @@ export function mapRemoteEnvironmentError(
         detail:
           connectionMethod === "relay"
             ? `${error.message}${networkHint}`
-            : describeDirectPairingFailure({
-                message: error.message,
-                cause: error.cause,
-              }),
+            : pairingGuidance
+              ? describeDirectPairingFailure({
+                  message: error.message,
+                  cause: error.cause,
+                })
+              : error.message,
       });
     case "EnvironmentInternalError":
       return new ConnectionTransientError({
@@ -181,6 +187,10 @@ export function mapRemoteEnvironmentError(
         reason: "remote-unavailable",
         detail: error.message,
       });
+    default: {
+      const _exhaustive: never = error;
+      return _exhaustive;
+    }
   }
 }
 

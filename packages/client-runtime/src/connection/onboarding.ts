@@ -95,13 +95,17 @@ export const preparePairingRegistration = Effect.fn(
   }
   const descriptor = yield* fetchRemoteEnvironmentDescriptor({
     httpBaseUrl: target.httpBaseUrl,
-  }).pipe(Effect.mapError(mapRemoteEnvironmentError));
+  }).pipe(
+    Effect.mapError((error) => mapRemoteEnvironmentError(error, "direct", { pairing: true })),
+  );
   const access = yield* bootstrapRemoteBearerSession({
     httpBaseUrl: target.httpBaseUrl,
     credential: target.credential,
     scopes: presentation.scopes,
     clientMetadata: presentation.metadata,
-  }).pipe(Effect.mapError(mapRemoteEnvironmentError));
+  }).pipe(
+    Effect.mapError((error) => mapRemoteEnvironmentError(error, "direct", { pairing: true })),
+  );
   const connectionId = `bearer:${descriptor.environmentId}`;
 
   return new BearerConnectionRegistration({

@@ -234,6 +234,18 @@ describe("t3 pair", () => {
     ).pipe(Effect.provide(NodeServices.layer)),
   );
 
+  it.effect("rejects --lan together with --tailscale", () =>
+    Effect.gen(function* () {
+      const error = yield* provideCliTestLayers(
+        runCli(["pair", "--lan", "--tailscale"]).pipe(Effect.flip),
+      );
+      const rendered = String(
+        typeof error === "object" && error !== null && "cause" in error ? error.cause : error,
+      );
+      assert.include(rendered, "--lan and --tailscale cannot be used together");
+    }),
+  );
+
   it.effect("pairs through the recorded dev web URL for dev servers", () =>
     withDescriptorServer((origin) =>
       Effect.gen(function* () {

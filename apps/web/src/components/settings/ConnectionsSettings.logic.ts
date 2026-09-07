@@ -1,6 +1,16 @@
+import { isLoopbackPairingHostname } from "@t3tools/client-runtime/connection";
 import type { AdvertisedEndpoint, DesktopBridge, DesktopWslState } from "@t3tools/contracts";
+import { createAdvertisedEndpoint } from "@t3tools/shared/advertisedEndpoint";
+import { isPrivateNetworkHost, normalizeHostname } from "@t3tools/shared/hostClassification";
 
 type WslEnableBridge = Pick<DesktopBridge, "setWslBackendEnabled" | "setWslDistro" | "setWslOnly">;
+
+const BROWSER_LAN_ENDPOINT_PROVIDER = {
+  id: "server",
+  label: "Server",
+  kind: "core",
+  isAddon: false,
+} as const;
 
 /**
  * A QR code encoding a loopback URL makes the scanning device dial itself, so
@@ -11,6 +21,46 @@ export function isQrShareableEndpoint(endpoint: AdvertisedEndpoint): boolean {
   return endpoint.status !== "unavailable" && endpoint.reachability !== "loopback";
 }
 
+function isTailscalePairingHost(hostname: string): boolean {
+  const host = normalizeHostname(hostname);
+  if (host === "ts.net" || host.endsWith(".ts.net")) return true;
+  const parts = host.split(".");
+  if (parts.length !== 4) return false;
+  const octets = parts.map((part) => Number.parseInt(part, 10));
+  return (
+    octets.every((octet) => Number.isInteger(octet) && octet >= 0 && octet <= 255) &&
+    octets[0] === 100 &&
+    octets[1]! >= 64 &&
+    octets[1]! <= 127
+  );
+}
+
+function isSameWifiPairingHost(hostname: string): boolean {
+  const host = normalizeHostname(hostname);
+  if (host.length === 0 || host === "0.0.0.0" || host === "::") return false;
+  if (isLoopbackPairingHostname(host) || isTailscalePairingHost(host)) return false;
+  return isPrivateNetworkHost(host);
+}
+
+function advertisedLanEndpointFromUrl(raw: string): AdvertisedEndpoint | null {
+  let url: URL;
+  try {
+    url = new URL(raw);
+  } catch {
+    return null;
+  }
+  if (url.protocol !== "http:" && url.protocol !== "https:") return null;
+  if (!isSameWifiPairingHost(url.hostname)) return null;
+  return createAdvertisedEndpoint({
+    id: `browser-origin:${url.origin}`,
+    label: "Local network",
+    provider: BROWSER_LAN_ENDPOINT_PROVIDER,
+    httpBaseUrl: url.origin,
+    reachability: "lan",
+    source: "server",
+  });
+}
+
 /** Same-LAN QR target: ignore Tailscale / loopback / hosted HTTPS. */
 export function selectLanPairingEndpoint(
   endpoints: ReadonlyArray<AdvertisedEndpoint>,
@@ -19,9 +69,24 @@ export function selectLanPairingEndpoint(
   return (
     available.find((endpoint) => endpoint.reachability === "lan") ??
     available.find((endpoint) => endpoint.id.startsWith("desktop-lan:")) ??
-    available.find((endpoint) => endpoint.reachability === "private-network") ??
     null
   );
+}
+
+/**
+ * Browser / `npx t3` web has no desktop advertised-endpoint list. When the
+ * page origin (or server HTTP URL) is a same-Wi-Fi address, mint a LAN
+ * endpoint so Show QR still works.
+ */
+export function deriveBrowserLanPairingEndpoint(
+  candidateUrls: ReadonlyArray<string | null | undefined>,
+): AdvertisedEndpoint | null {
+  for (const candidate of candidateUrls) {
+    if (candidate == null || candidate.trim() === "") continue;
+    const endpoint = advertisedLanEndpointFromUrl(candidate);
+    if (endpoint) return endpoint;
+  }
+  return null;
 }
 
 export function isWslSettingsRowVisible(input: {

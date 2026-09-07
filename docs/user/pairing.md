@@ -14,13 +14,23 @@ If this computer is only listening on itself, turn on **Wi-Fi pairing**, then sh
 
 On a command-line server that already listens on the LAN, run `npx t3 pair --lan`. That command refuses a localhost link instead of showing a QR the phone cannot use.
 
+If `npx t3 pair` produced a localhost QR, restart the server so other devices can reach it, then mint a LAN QR. `serve` stays running, so use two terminals:
+
+```bash
+npx t3 serve --host 0.0.0.0
+```
+
+```bash
+npx t3 pair --lan
+```
+
 ## 3. Scan on the phone
 
 In the T3 Code app, add an environment and scan the QR. Do not type `127.0.0.1` — that is the phone itself.
 
 ## If pairing fails
 
-- **The QR is localhost / 127.0.0.1.** The phone would dial itself. Turn on Wi-Fi pairing on the computer and scan again.
+- **The QR is localhost / 127.0.0.1.** The phone would dial itself. On the desktop, turn on Wi-Fi pairing and scan again. For CLI pairing, restart the server with `npx t3 serve --host 0.0.0.0`, then rerun `npx t3 pair --lan`.
 - **Connection refused.** The server is not accepting network connections, or the port is blocked. Turn on Wi-Fi pairing or allow the port through the firewall.
 - **Timed out or unreachable.** The phone is on a different network, a guest Wi-Fi, or a VLAN that isolates clients. Move to the computer's network, or use Tailscale / T3 Connect from [remote access](./remote-access.md) as a fallback.
 

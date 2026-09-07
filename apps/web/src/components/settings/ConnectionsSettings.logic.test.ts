@@ -2,6 +2,7 @@ import type { AdvertisedEndpoint, DesktopWslState } from "@t3tools/contracts";
 import { describe, expect, it, vi } from "vite-plus/test";
 import {
   applyWslEnableSelection,
+  deriveBrowserLanPairingEndpoint,
   isQrShareableEndpoint,
   isWslSettingsRowVisible,
   selectLanPairingEndpoint,
@@ -151,6 +152,42 @@ describe("selectLanPairingEndpoint", () => {
     });
     expect(selectLanPairingEndpoint([loopback, tailscale, lan])?.id).toBe(lan.id);
     expect(selectLanPairingEndpoint([loopback])).toBeNull();
+  });
+
+  it("does not fall back to a Tailscale private-network endpoint", () => {
+    const loopback = makeEndpoint({
+      id: "desktop-loopback:4780",
+      reachability: "loopback",
+      httpBaseUrl: "http://127.0.0.1:4780",
+    });
+    const tailscale = makeEndpoint({
+      id: "tailscale-ip:http://100.84.12.8:4780",
+      reachability: "private-network",
+      httpBaseUrl: "http://100.84.12.8:4780",
+    });
+    expect(selectLanPairingEndpoint([loopback, tailscale])).toBeNull();
+  });
+});
+
+describe("deriveBrowserLanPairingEndpoint", () => {
+  it("uses the first same-Wi-Fi origin and skips loopback, Tailscale, and hosted app origins", () => {
+    const endpoint = deriveBrowserLanPairingEndpoint([
+      "http://127.0.0.1:5733",
+      "https://app.t3.codes",
+      "http://100.84.12.8:3773",
+      "http://192.168.1.42:5733",
+    ]);
+    expect(endpoint).toMatchObject({
+      id: "browser-origin:http://192.168.1.42:5733",
+      httpBaseUrl: "http://192.168.1.42:5733/",
+      reachability: "lan",
+    });
+  });
+
+  it("returns null when no candidate is a LAN address", () => {
+    expect(
+      deriveBrowserLanPairingEndpoint(["http://localhost:5733", "https://app.t3.codes"]),
+    ).toBeNull();
   });
 });
 

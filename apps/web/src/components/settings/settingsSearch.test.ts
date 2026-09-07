@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vite-plus/test";
 
 import {
+  ADVANCED_CONNECTION_SEARCH_TARGET_IDS,
   filterAvailableSettingsSearchItems,
   searchableSetting,
   searchSettings,
@@ -194,6 +195,15 @@ describe("searchSettings", () => {
   it("serves anchor props to panels from the catalog", () => {
     expect(searchableSetting("word-wrap")).toEqual({ id: "word-wrap", title: "Word wrap" });
     expect(searchableSetting("archive")).toEqual({ id: "archive", title: "Archived threads" });
+  });
+
+  it("points advanced Connections search items at their own rows", () => {
+    for (const id of ADVANCED_CONNECTION_SEARCH_TARGET_IDS) {
+      const item: SettingsSearchItem | undefined = SETTINGS_SEARCH_ITEMS.find(
+        (entry) => entry.id === id,
+      );
+      expect(item?.targetId ?? item?.id).toBe(id);
+    }
   });
 
   it("routes appearance settings to their current section", () => {

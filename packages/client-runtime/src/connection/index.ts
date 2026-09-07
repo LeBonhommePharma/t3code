@@ -7,6 +7,11 @@ export {
   type EnvironmentConnectionLease,
 } from "./driver.ts";
 export * from "./errors.ts";
+export {
+  isIosSimulatorClient,
+  isLoopbackPairingHostname,
+  loopbackPairingBlock,
+} from "./lanPairingErrors.ts";
 export * as Connection from "./layer.ts";
 export * from "./model.ts";
 export {

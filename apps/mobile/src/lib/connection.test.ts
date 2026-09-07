@@ -16,6 +16,7 @@ const mobileDevice = vi.hoisted(() => ({
   },
   osVersion: "18.4.1",
   modelName: "iPhone 15 Pro",
+  isDevice: true,
 }));
 
 vi.mock("./runtime", () => ({
@@ -36,6 +37,7 @@ describe("mobile remote connection records", () => {
     mobileDevice.deviceType = mobileDevice.DeviceType.PHONE;
     mobileDevice.osVersion = "18.4.1";
     mobileDevice.modelName = "iPhone 15 Pro";
+    mobileDevice.isDevice = true;
   });
 
   it("identifies mobile token exchanges for authorized-client presentation", () => {
@@ -76,6 +78,14 @@ describe("mobile remote connection records", () => {
     expect(authClientMetadata("1.2.3")).toMatchObject({
       surface: "mobile",
       appVersion: "1.2.3",
+    });
+  });
+
+  it("labels the iOS Simulator so localhost pairing can reach the host Mac", () => {
+    mobileDevice.isDevice = false;
+    expect(authClientMetadata()).toMatchObject({
+      os: "iOS Simulator",
+      surface: "mobile",
     });
   });
 

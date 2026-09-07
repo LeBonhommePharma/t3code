@@ -464,7 +464,6 @@ export const SETTINGS_SEARCH_ITEMS = [
     id: "tailscale-https",
     title: "Tailscale HTTPS",
     to: "/settings/connections",
-    targetId: "connections-environment",
     searchTerms: ["serve magicdns endpoint remote secure network"],
     desktopOnly: true,
     localBackendManagementOnly: true,
@@ -485,7 +484,6 @@ export const SETTINGS_SEARCH_ITEMS = [
     id: "t3-connect",
     title: "T3 Connect",
     to: "/settings/connections",
-    targetId: "connections-environment",
     searchTerms: ["managed tunnel cloud other devices remote"],
     desktopOnly: true,
     cloudOnly: true,
@@ -494,7 +492,6 @@ export const SETTINGS_SEARCH_ITEMS = [
     id: "publish-agent-activity",
     title: "Publish agent activity",
     to: "/settings/connections",
-    targetId: "connections-environment",
     searchTerms: ["mobile push notifications live activities cloud tunnel"],
     cloudOnly: true,
   },
@@ -536,6 +533,14 @@ export function searchableSetting(id: SettingsSearchItemId): {
   const { id: anchorId, title } = SEARCH_ITEMS_BY_ID.get(id)!;
   return { id: anchorId, title };
 }
+
+/** Rows behind Connections → Other ways to connect; search jumps expand that group. */
+export const ADVANCED_CONNECTION_SEARCH_TARGET_IDS: ReadonlySet<string> = new Set([
+  "tailscale-https",
+  "wsl-backend",
+  "t3-connect",
+  "publish-agent-activity",
+]);
 
 export function filterAvailableSettingsSearchItems(
   availability: SettingsSearchAvailability,

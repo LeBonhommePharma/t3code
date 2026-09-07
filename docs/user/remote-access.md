@@ -13,10 +13,16 @@ this machine is only listening on itself, then show the QR. On the phone, add an
 environment and scan. Do not use a `127.0.0.1` QR — that address is the device
 opening the link, not the computer.
 
-For a command-line host that should listen on the LAN:
+For a command-line host that should listen on the LAN, run the server in one
+terminal:
 
 ```bash
 npx t3 serve --host 0.0.0.0
+```
+
+Then, in a second terminal, create the pairing QR:
+
+```bash
 npx t3 pair --lan
 ```
 

@@ -34,6 +34,20 @@ const MOBILE_PRESENTATION_LAYER = Layer.succeed(
       label: "T3 Code Mobile",
       deviceType: "mobile",
       surface: "mobile",
+      os: "iOS",
+    },
+    scopes: AuthStandardClientScopes,
+  }),
+);
+
+const IOS_SIMULATOR_PRESENTATION_LAYER = Layer.succeed(
+  ClientPresentation,
+  ClientPresentation.of({
+    metadata: {
+      label: "T3 Code Mobile",
+      deviceType: "mobile",
+      surface: "mobile",
+      os: "iOS Simulator",
     },
     scopes: AuthStandardClientScopes,
   }),
@@ -190,6 +204,23 @@ describe("connection onboarding", () => {
       });
       expect(error.message).toBe(LOOPBACK_PHONE_PAIRING_DETAIL);
       expect(calls).toEqual([]);
+    }),
+  );
+
+  it.effect("allows iOS Simulator localhost pairing because loopback reaches the host", () =>
+    Effect.gen(function* () {
+      const calls: Array<{ readonly url: string; readonly init: RequestInit }> = [];
+      const registration = yield* preparePairingRegistration({
+        pairingUrl: "http://127.0.0.1:3773/pair#token=pairing-token",
+      }).pipe(
+        Effect.provide(Layer.mergeAll(IOS_SIMULATOR_PRESENTATION_LAYER, pairingHttpLayer(calls))),
+      );
+
+      expect(registration.profile.httpBaseUrl).toBe("http://127.0.0.1:3773/");
+      expect(calls.map((call) => call.url)).toEqual([
+        "http://127.0.0.1:3773/.well-known/t3/environment",
+        "http://127.0.0.1:3773/oauth/token",
+      ]);
     }),
   );
 

@@ -48,6 +48,7 @@ import { formatElapsedDurationLabel, formatExpiresInLabel } from "../../timestam
 import { resolveDesktopPairingUrl, resolveHostedPairingUrl } from "./pairingUrls";
 import {
   applyWslEnableSelection,
+  deriveBrowserLanPairingEndpoint,
   isQrShareableEndpoint,
   isWslSettingsRowVisible,
   selectLanPairingEndpoint,
@@ -59,8 +60,9 @@ import {
   SettingsRow,
   SettingsSection,
   useRelativeTimeTick,
+  useSettingsSearchTargetId,
 } from "./settingsLayout";
-import { searchableSetting } from "./settingsSearch";
+import { ADVANCED_CONNECTION_SEARCH_TARGET_IDS, searchableSetting } from "./settingsSearch";
 import { EnvironmentIconPicker } from "./EnvironmentIconPicker";
 import { Input } from "../ui/input";
 import { CommandShortcut } from "../ui/command";
@@ -144,6 +146,7 @@ import { desktopWslStateAtom, refreshDesktopWslState } from "~/state/desktopWslS
 import {
   type EnvironmentPresentation,
   useEnvironments,
+  useEnvironmentHttpBaseUrl,
   usePrimaryEnvironment,
 } from "~/state/environments";
 import { useAtomCommand } from "../../state/use-atom-command";
@@ -1695,7 +1698,7 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
     <>
       {window.desktopBridge ? (
         <SettingsRow
-          title={searchableSetting("t3-connect").title}
+          {...searchableSetting("t3-connect")}
           description={
             managedTunnelActive
               ? "This environment is available to your other devices through T3 Connect."
@@ -1713,7 +1716,7 @@ function ConfiguredCloudLinkRow({ canManageRelay }: { readonly canManageRelay: b
         />
       ) : null}
       <SettingsRow
-        title={searchableSetting("publish-agent-activity").title}
+        {...searchableSetting("publish-agent-activity")}
         description="Send activity to mobile notifications and Live Activities without T3 Connect."
         control={
           <CloudLinkSwitch
@@ -1781,6 +1784,7 @@ export function ConnectionsSettings() {
   const removeEnvironment = useAtomCommand(environmentCatalog.remove, { reportFailure: false });
   const retryEnvironment = useAtomCommand(environmentCatalog.retryNow, { reportFailure: false });
   const primaryEnvironmentId = primaryEnvironment?.environmentId ?? null;
+  const primaryHttpBaseUrl = useEnvironmentHttpBaseUrl(primaryEnvironmentId);
   const primarySessionState = usePrimarySessionState();
   const currentSessionScopes = desktopBridge
     ? AuthAdministrativeScopes
@@ -1889,6 +1893,18 @@ export function ConnectionsSettings() {
   );
   const [isAdvertisedEndpointListExpanded, setIsAdvertisedEndpointListExpanded] = useState(false);
   const [showAdvancedConnections, setShowAdvancedConnections] = useState(false);
+  const searchTargetId = useSettingsSearchTargetId();
+  const lastExpandedConnectionTargetRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (searchTargetId === null) {
+      lastExpandedConnectionTargetRef.current = null;
+      return;
+    }
+    if (!ADVANCED_CONNECTION_SEARCH_TARGET_IDS.has(searchTargetId)) return;
+    if (lastExpandedConnectionTargetRef.current === searchTargetId) return;
+    lastExpandedConnectionTargetRef.current = searchTargetId;
+    setShowAdvancedConnections(true);
+  }, [searchTargetId]);
   const defaultAdvertisedEndpointKey = useUiStateStore(
     (state) => state.defaultAdvertisedEndpointKey,
   );
@@ -2429,10 +2445,17 @@ export function ConnectionsSettings() {
   );
   const isLocalBackendRemotelyReachable =
     isLocalBackendNetworkAccessible || tailscaleHttpsEndpoint?.status === "available";
-  const lanPairingEndpoint = useMemo(
-    () => selectLanPairingEndpoint(visibleDesktopNetworkAdvertisedEndpoints),
-    [visibleDesktopNetworkAdvertisedEndpoints],
-  );
+  const lanPairingEndpoint = useMemo(() => {
+    const advertised = selectLanPairingEndpoint(visibleDesktopNetworkAdvertisedEndpoints);
+    if (advertised) return advertised;
+    if (desktopBridge !== undefined || !isLocalBackendNetworkAccessible) return null;
+    return deriveBrowserLanPairingEndpoint([window.location.origin, primaryHttpBaseUrl]);
+  }, [
+    desktopBridge,
+    isLocalBackendNetworkAccessible,
+    primaryHttpBaseUrl,
+    visibleDesktopNetworkAdvertisedEndpoints,
+  ]);
   const defaultDesktopNetworkAdvertisedEndpoint = useMemo(
     () =>
       selectPairingEndpoint(visibleDesktopNetworkAdvertisedEndpoints, defaultAdvertisedEndpointKey),
@@ -3021,7 +3044,7 @@ export function ConnectionsSettings() {
 
   const renderTailscaleRow = () => (
     <SettingsRow
-      title={searchableSetting("tailscale-https").title}
+      {...searchableSetting("tailscale-https")}
       description={
         tailscaleHttpsEndpoint
           ? tailscaleHttpsEndpoint.status === "available"
