@@ -1,11 +1,7 @@
 export * from "./catalog.ts";
 export * as Connectivity from "./connectivity.ts";
 export * as CredentialStore from "./credentialStore.ts";
-export {
-  ConnectionDriver,
-  type ConnectionDriverProgress,
-  type EnvironmentConnectionLease,
-} from "./driver.ts";
+export { type ConnectionDriverProgress, type EnvironmentConnectionLease } from "./driver.ts";
 export * from "./errors.ts";
 export {
   isIosSimulatorClient,
@@ -19,12 +15,6 @@ export {
   ConnectionOnboarding,
   type PairingConnectionInput,
   type SshConnectionInput,
-  prepareBearerConnectionUpdate,
-  preparePairingRegistration,
-  prepareSshRegistration,
-  registerPairingConnection,
-  registerSshConnection,
-  updateBearerConnection,
 } from "./onboarding.ts";
 export * from "./presentation.ts";
 export * as ProfileStore from "./profileStore.ts";
@@ -33,6 +23,5 @@ export {
   EnvironmentRegistry,
   PlatformEnvironmentRemovalError,
 } from "./registry.ts";
-export { ConnectionResolver } from "./resolver.ts";
 export { EnvironmentSupervisor, type EnvironmentSupervisorOptions } from "./supervisor.ts";
 export * as Wakeups from "./wakeups.ts";
